@@ -1,0 +1,9 @@
+# Python
+__pycache__/
+*.pyc
+
+# Arduino build output (rebuild with arduino-cli; boards already carry the sketch)
+IODebug/build/
+
+# Runtime control flag for log_lift.py
+STOP_CAPTURE

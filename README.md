@@ -1,0 +1,38 @@
+# WhizdomLift
+
+ระบบอ่านสัญญาณตำแหน่งและสถานะลิฟต์ด้วย Arduino Mega 2560 — อ่านหน้าสัมผัสรีเลย์จากตู้ควบคุมลิฟต์ (รหัสตำแหน่ง 6 บิต VS2–VS7 + สถานะ RUNNING / SAFETY / UP / DN / FIRE) ผ่านแผงขั้วต่อ DNMEGA1 และโมดูลรีเลย์ 24V แบบ **read-only ทั้งระบบ** ไม่มีการขับสัญญาณกลับเข้าตู้ลิฟต์
+
+📋 **ผลการทดสอบล่าสุด:** [TEST_REPORT_2026-08-08.md](TEST_REPORT_2026-08-08.md) — ยืนยันความแม่นยำด้วย blind test 14/14 เหตุการณ์ พร้อมตารางสอบเทียบรหัส↔ชั้น และ checklist งานที่เหลือร่วมกับทีมดูแลลิฟต์
+
+## โครงสร้าง
+
+| ไฟล์ | หน้าที่ |
+|---|---|
+| `IODebug/IODebug.ino` | Sketch บนบอร์ด: อ่าน D2–D53 + A0–A15, watch mode ส่ง `ST <ms> <mask>` ทุกการเปลี่ยนแปลง |
+| `log_lift.py` | ตัวบันทึกถาวรต่อลิฟต์: `python log_lift.py COM3` — reconnect อัตโนมัติ, heartbeat 60 วิ |
+| `lift_decode.py` | Config กลาง: แผนที่ขา→บิตของแต่ละลิฟต์ + ตารางแปลงรหัส→ป้ายชั้น |
+| `analyze_lift.py` | ถอดแผนที่บิตอัตโนมัติจากพฤติกรรมสัญญาณ + ไทม์ไลน์ชั้น |
+| `trips.py` | แยกเที่ยววิ่ง จุดจอด จุดแวะรับ + จำแนกสัญญาณสถานะ |
+| `compare_lifts.py` | เทียบ wiring และรหัสระหว่างลิฟต์หลายตัว |
+| `audit.py` / `reveal.py` / `probe_pin.py` | ตรวจข้อมูลดิบ, ตรวจคำตอบ blind test, ทดสอบขาแบบสด |
+| `monitor.py` / `scan_pins.py` / `selftest.py` | เครื่องมือ serial monitor, สแกนหาขาที่ต่อจริง, ทดสอบบอร์ด |
+| `capture_lift*.log` | ข้อมูลดิบจากการทดสอบ 8 ส.ค. 2026 (ลิฟต์ A + B) |
+
+## เริ่มใช้งาน
+
+```
+# อัปโหลด sketch (ครั้งแรกต่อบอร์ด)
+arduino-cli compile --fqbn arduino:avr:mega:cpu=atmega2560 IODebug
+arduino-cli upload -p COM3 --fqbn arduino:avr:mega:cpu=atmega2560 IODebug
+
+# เริ่มเก็บข้อมูล (หนึ่งโปรเซสต่อลิฟต์)
+python log_lift.py COM3
+python log_lift.py COM5
+
+# หยุดทุกตัว: สร้างไฟล์ STOP_CAPTURE ในโฟลเดอร์นี้
+
+# วิเคราะห์
+python analyze_lift.py
+python trips.py
+python compare_lifts.py
+```
