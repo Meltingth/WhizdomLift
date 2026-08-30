@@ -99,6 +99,52 @@ STATUS_PINS = {
 #   VS7 (bit 5)   would need the encoder to pass 31; it peaks at 23
 #   FIRE 火灾, FIRE RETURN   only close in an alarm condition
 
+
+# ------------------------------------------------------ arming the sketch
+BOOT_WAIT = 3.0     # the bootloader holds the line ~2s after the port opens
+
+
+def _toggle_until(ser, cmd, want, opposite, tries=4):
+    for _ in range(tries):
+        ser.reset_input_buffer()
+        ser.write(cmd)
+        ser.flush()
+        end = time.time() + 2.5
+        buf = b""
+        while time.time() < end:
+            buf += ser.read(256)
+            if want in buf:
+                return True
+            if opposite in buf:
+                break                  # toggled the wrong way, go round again
+        time.sleep(0.2)
+    return False
+
+
+def arm_watch(ser, quiet_analog=True):
+    """Put the board into watch mode and confirm it took.
+
+    Opening the port resets the board and the bootloader then swallows input
+    for about two seconds; commands sent inside that window vanish. These are
+    toggles rather than absolute settings, so the reply is read back and the
+    command repeated if it flipped the wrong way - a capture that silently
+    never armed is worse than one that fails loudly.
+    """
+    ser.dtr = False                    # do not reset it again from here
+    ser.rts = False
+    time.sleep(0.2)
+    ser.reset_input_buffer()
+    time.sleep(BOOT_WAIT)
+    if quiet_analog:
+        _toggle_until(ser, b"a", b"analog reporting OFF", b"analog reporting ON")
+    if not _toggle_until(ser, b"w", b"watch mode ON", b"watch mode OFF"):
+        raise serial.SerialException(
+            "board never confirmed watch mode - not capturing anything")
+    ser.write(b"e")                    # baseline state
+    ser.flush()
+    return True
+
+
 # ---------------------------------------------------------------- lift names
 # The building numbers its lifts 1..5. During testing they were reached in a
 # different order and labelled A..E, and those letters are baked into the
