@@ -133,6 +133,36 @@ Windows เปลี่ยนเลข COM เมื่อสลับอุป�
 ช่วงอัปเกรดจะเห็นเป็น **ความเงียบ** ไม่ใช่บรรทัดเสีย ⇒ `rejected` ขยับเมื่อไหร่คือของจริงเสมอ
 ดู `FIRMWARE_UPGRADE.md`
 
+## git ขณะที่ตัวบันทึกกำลังทำงาน
+
+`git pull --ff-only` เฉย ๆ **ปลอดภัย** — มันไม่แตะไฟล์ที่ไม่ได้อยู่ใน diff ขาเข้า
+และตามกฎ "หนึ่งลิฟต์ต่อหนึ่งเครื่อง" ไฟล์ `capture_lift_N.log` ที่เครื่องนี้ถืออยู่
+จะไม่มีใครแก้จากอีกฝั่ง จึงไม่มีวันชนกัน
+
+⛔ **ห้าม `git stash` ไฟล์ log ที่ logger เปิดค้างอยู่** Windows ล็อกไฟล์ไว้ ผลคือ:
+
+```
+git stash push capture_lift_2.log
+  error: unable to write file 'capture_lift_2.log': Permission denied
+git stash pop
+  Dropped refs/stash@{0}
+```
+
+stash **ถูกสร้างและ stage ไปแล้ว** แต่เขียนทับ working file ไม่ได้ พอ pop ก็ drop ทิ้ง
+เหลือ index ค้างสถานะ `MM` ที่ไม่ตรงกับไฟล์จริง
+
+ข้อมูลรอดเพราะ**ล็อกของ Windows กันไว้เอง** ไม่ใช่เพราะ git ระวัง — อย่าพึ่งโชคซ้ำ
+ถ้าเผลอทำไปแล้ว ล้างด้วย `git reset HEAD -- <file>` แล้ว**ตรวจว่าข้อมูลครบจริง**:
+
+```
+git show HEAD:capture_lift_2.log | tr -d '' > /tmp/head.txt
+head -n $(wc -l < /tmp/head.txt) capture_lift_2.log | tr -d '' | diff - /tmp/head.txt
+```
+
+ต้องไม่มีความต่าง — แปลว่าไฟล์เดิมเป็น prefix ของไฟล์ปัจจุบันพอดี คือ append อย่างเดียว ไม่มีอะไรหาย
+**ต้องตัด `` ก่อนเทียบ** ไม่งั้นจะเห็นว่าต่างกันทั้งไฟล์ทั้งที่เหมือนกันหมด เพราะ working file
+เป็น CRLF ส่วน blob ใน git เป็น LF
+
 ## เช็คลิสต์ต่อลิฟต์ใหม่
 
 1. Arduino มี sketch `IODebug` เวอร์ชันที่ arm ตัวเอง (ตรวจ: เปิดพอร์ตแล้วต้องมี `ST` มาเองโดยไม่ต้องส่งคำสั่ง)
