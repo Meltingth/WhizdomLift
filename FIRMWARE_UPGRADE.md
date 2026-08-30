@@ -85,14 +85,34 @@ grep -nE "OUTPUT|digitalWrite|Serial[123]" IODebug/IODebug.ino
 ```
 **ต้องไม่เจออะไรเลย** ถ้าเจอแปลว่ามีโค้ดที่จะขับขาออก หรือเปิด UART ที่ทับสายสัญญาณ
 
-### 4. Compile และ upload
+### 4. Compile — **ต้องมี `--export-binaries`**
 
 ```
-arduino-cli compile --fqbn arduino:avr:mega:cpu=atmega2560 --warnings all IODebug
+arduino-cli compile --fqbn arduino:avr:mega:cpu=atmega2560 --warnings all --export-binaries IODebug
+```
+
+⚠️ `arduino-cli compile` เฉย ๆ จะ build ลงโฟลเดอร์ชั่วคราว **`IODebug/build/` จะไม่ถูกแตะเลย**
+แฟล็กนี้ถูกใส่ครั้งเดียวตอน `f45ca99` แล้วไม่ถูกใส่อีก ทำให้ hex ที่ track ไว้ค้างอยู่ที่
+**build แรกสุดของโปรเจกต์ (7,396 ไบต์ เทียบกับปัจจุบัน 9,552)** — เก่ากว่าทั้งการ arm ตัวเอง
+และเก่ากว่าการแก้บั๊ก §6.1 ⇒ ใครแฟลชบอร์ดสำรองจากไฟล์นั้นจะได้ firmware ที่
+**พิมพ์ EDGE กับ snapshot ระหว่างเก็บข้อมูล** ซึ่งเคยทำให้อ่านบิตเร็วสุดตกและเลื่อนทุกบิตมาแล้ว
+
+### 5. ตรวจว่า hex ที่ track ตรงกับ source
+
+```
+python check_firmware_hex.py
+```
+
+ต้องได้ `OK - the tracked hex matches the current source`
+วินัยอย่างเดียวจับเรื่องนี้ไม่ได้มาหลายสัปดาห์แล้ว จึงต้องให้เครื่องตรวจแทน
+
+### 6. Upload
+
+```
 arduino-cli upload -p COM3 --fqbn arduino:avr:mega:cpu=atmega2560 IODebug
 ```
 
-### 5. ยืนยันว่าขึ้นเวอร์ชันใหม่จริง
+### 7. ยืนยันว่าขึ้นเวอร์ชันใหม่จริง
 
 ```
 python -c "
@@ -103,16 +123,17 @@ s.close()"
 ```
 ต้องเห็น `FW IODebug <เวอร์ชันใหม่>` และมี `ST` ตามมาเองโดยไม่ต้องส่งคำสั่ง
 
-### 6. ตรวจว่ายังอ่านสัญญาณถูก
+### 8. ตรวจว่ายังอ่านสัญญาณถูก
 
 ```
 python lift_health.py <lift>
 ```
 ต้องได้ `HEALTHY` และ single-step 100% เหมือนเดิม
 
-### 7. commit + push แล้วแจ้ง Gateway
+### 9. commit + push แล้วแจ้ง Gateway
 
 บอกว่าอัปเกรดลิฟต์ไหนเป็นเวอร์ชันอะไร Gateway จะเห็นบรรทัด `FW` ในล็อกตรงกัน
+**ต้อง commit ไฟล์ hex ที่ build ใหม่ไปด้วย** ไม่งั้นจะกลับไปค้างแบบเดิม
 
 ---
 
