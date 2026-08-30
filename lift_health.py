@@ -140,32 +140,44 @@ def main():
     widths = pulse_widths(rows)
 
     def classify(pin):
+        """Judge a line on its 99th percentile closure, not its longest.
+
+        Using the maximum makes the verdict hinge on a single sample: Lift 2's
+        SAFETY line logged one 304ms closure among 79,664, every other one of
+        them 2-4ms, and that lone outlier was enough to relabel a dead line as
+        healthy. A high percentile ignores the stray while still reacting the
+        moment a line genuinely starts holding.
+        """
         seen = low_count.get(pin, 0)
         if seen == 0:
-            return "MISSING", None
-        w = widths.get(pin) or []
-        if w and max(w) < 50:
-            return "NOISE", max(w)
-        return "ok", (max(w) if w else None)
+            return "MISSING", None, 0
+        w = sorted(widths.get(pin) or [])
+        if not w:
+            return "MISSING", None, 0
+        p99 = w[min(len(w) - 1, int(len(w) * 0.99))]
+        long_ones = sum(1 for x in w if x >= 50)
+        if p99 < 50:
+            return "NOISE", p99, long_ones
+        return "ok", w[-1], long_ones
 
-    print(f"  {'pin':<5} {'expected':<12} {'closings':>9} {'longest':>9}   status")
+    print(f"  {'pin':<5} {'expected':<12} {'closings':>9} {'p99 hold':>9}   status")
     missing_bits, missing_status = [], []
     noisy = []
     for pin, bit in sorted(REF_BITS.items(), key=lambda kv: kv[1]):
-        mark, longest = classify(pin)
+        mark, longest, long_ones = classify(pin)
         if mark == "MISSING":
             missing_bits.append((pin, bit))
         elif mark == "NOISE":
-            noisy.append((pin, VS[bit], longest))
+            noisy.append((pin, VS[bit], longest, long_ones))
         shown = f"{longest}ms" if longest is not None else "-"
         print(f"  D{pin:<4} {VS[bit] + ' bit' + str(bit):<12} "
               f"{len(widths.get(pin) or []):>9} {shown:>9}   {mark}")
     for pin, name in sorted(REF_STATUS.items()):
-        mark, longest = classify(pin)
+        mark, longest, long_ones = classify(pin)
         if mark == "MISSING":
             missing_status.append((pin, name))
         elif mark == "NOISE":
-            noisy.append((pin, name, longest))
+            noisy.append((pin, name, longest, long_ones))
         shown = f"{longest}ms" if longest is not None else "-"
         print(f"  D{pin:<4} {name:<12} {len(widths.get(pin) or []):>9} "
               f"{shown:>9}   {mark}")
@@ -318,8 +330,9 @@ def main():
             faults.append(f"D{p} ({VS[b]}) unseen, but the car never went high "
                           f"enough to need it — inconclusive")
     faults += [f"D{p} ({n}) sends nothing" for p, n in missing_status]
-    faults += [f"D{p} ({n}) carries only noise - longest closure {w}ms"
-               for p, n, w in noisy]
+    faults += [f"D{p} ({n}) carries only noise - 99% of closures under {w}ms"
+               + (f", {c} stray longer one(s)" if c else "")
+               for p, n, w, c in noisy]
     if not faults and verdict_bits == "OK":
         print("  HEALTHY - all ten lines present and decoding matches lift A.")
     else:
