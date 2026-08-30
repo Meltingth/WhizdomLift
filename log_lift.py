@@ -90,6 +90,17 @@ def closed_pins(mask):
 
 BOOT_WAIT = 3.0     # bootloader holds the line for ~2s after the port opens
 
+# AVR millis() is a 32-bit unsigned counter, so it rolls over to 0 after
+# 49.7 days. On a permanently installed board that is a routine event, not a
+# reboot, and it must not be reported as one.
+MILLIS_WRAP = 2 ** 32
+
+# A board that really did restart has just booted, so its uptime is small. The
+# sketch emits a baseline at boot and a heartbeat every 60s, so we hear from a
+# restarted board well inside this window. Anything older than it is a board
+# that has been running for a while, whatever the wall clock suggests.
+FRESH_BOOT_MS = 120_000
+
 
 def _set_mode(ser, cmd, want, opposite, tries=4):
     """Send a toggle command until the board confirms the state we want.
@@ -279,14 +290,39 @@ def main():
                     # clock was reset. Delivery can bunch lines up, but that
                     # skews the other way - wall time short, board time long -
                     # so the test stays one-sided and will not fire on it.
+                    # Two guards on top of the two rules, both for false
+                    # positives that only show up on a Gateway running five
+                    # loggers for months.
+                    #
+                    # The wall-clock rule compares board time against real time
+                    # measured when a line is PROCESSED, not when it arrived.
+                    # If this reader is descheduled for a few seconds while the
+                    # board keeps emitting, the first line of the backlog looks
+                    # exactly like a reset: little board time, lots of wall
+                    # time. Bunching protects the lines inside the burst, not
+                    # the one that opens it. A board that truly restarted has a
+                    # small uptime though, and a stalled reader cannot make the
+                    # board's uptime small - so gate on that.
+                    #
+                    # And millis() rolls over to 0 every 49.7 days, which the
+                    # backwards test reads as a reboot. On an installed board
+                    # that is routine. Still marked, because the analysers split
+                    # their timeline wherever board time drops, but named for
+                    # what it is so nobody goes hunting for a power fault.
                     ms_i = int(ms)
                     wall_now = time.time()
                     restarted = reason = None
+                    wrapped = False
                     if last_ms is not None:
                         wall_ms = (wall_now - last_wall) * 1000
                         if ms_i < last_ms:
-                            restarted, reason = True, "clock went backwards"
-                        elif wall_ms > 2000 and (ms_i - last_ms) < wall_ms * 0.5:
+                            if (last_ms > MILLIS_WRAP - FRESH_BOOT_MS
+                                    and ms_i < FRESH_BOOT_MS):
+                                wrapped = True
+                            else:
+                                restarted, reason = True, "clock went backwards"
+                        elif (wall_ms > 2000 and ms_i < FRESH_BOOT_MS
+                                and (ms_i - last_ms) < wall_ms * 0.5):
                             restarted = True
                             reason = (f"board advanced {ms_i - last_ms}ms "
                                       f"while {wall_ms:.0f}ms of real time passed")
@@ -296,6 +332,14 @@ def main():
                         print(chr(10) + "  board restarted at "
                               + datetime.now().strftime("%H:%M:%S")
                               + " - " + reason)
+                    elif wrapped:
+                        log.write(f"--- board clock wrapped, not a restart "
+                                  f"(49.7-day millis() overflow: {last_ms} -> "
+                                  f"{ms_i}) {datetime.now():%H:%M:%S} ---"
+                                  + chr(10))
+                        print(chr(10) + "  board clock wrapped at "
+                              + datetime.now().strftime("%H:%M:%S")
+                              + " - 49.7-day millis() overflow, not a restart")
                     last_ms, last_wall = ms_i, wall_now
                     pins = closed_pins(mask)
                     stamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
