@@ -1,8 +1,8 @@
 """
 Long-running capture of the lift's signal lines. Runs until told to stop.
 
-    python log_lift.py                 log to capture_lift.log
-    python log_lift.py mylog.log       log somewhere else
+    python log_lift.py COM5 2          capture Lift 2 -> capture_lift_2.log
+    python log_lift.py COM3 3          capture Lift 3 -> capture_lift_3.log
 
 Stop it by deleting nothing and creating a file called STOP_CAPTURE next to the
 log, or just kill the process - every line is flushed as it arrives, so the log
@@ -24,7 +24,9 @@ import serial
 from serial.tools import list_ports
 
 # usage: python log_lift.py PORT [LIFT] [logfile]
-#     e.g. python log_lift.py COM5 C        -> capture_lift_C.log
+#     e.g. python log_lift.py COM5 2        -> capture_lift_2.log
+#          (the old letters A-E still work: A=Lift 3, B=Lift 1,
+#           C=Lift 2, D=Lift 4, E=Lift 5)
 #
 # One process per board. Name the LIFT, not the port: boards get swapped
 # between sessions and Windows reassigns COM numbers, so a port-named log
@@ -33,15 +35,17 @@ from serial.tools import list_ports
 # corruption into a refusal to start.
 #
 # All loggers share one STOP_CAPTURE file, so creating it stops every capture.
+from lift_decode import lift_id, lift_label     # single source of lift naming
+
 PORT = sys.argv[1].upper() if len(sys.argv) > 1 else "COM3"
-LIFT = sys.argv[2].upper() if len(sys.argv) > 2 else None
+LIFT = lift_id(sys.argv[2]) if len(sys.argv) > 2 else None
 BAUD = 115200
 DIG_FIRST = 2
 _here = os.path.dirname(os.path.abspath(__file__))
 if LIFT:
-    _default = "capture_lift.log" if LIFT == "A" else f"capture_lift_{LIFT}.log"
+    _default = f"capture_lift_{LIFT}.log"
 else:
-    _default = "capture_lift.log" if PORT == "COM3" else f"capture_lift_{PORT}.log"
+    _default = f"capture_lift_{PORT}.log"
 LOG = sys.argv[3] if len(sys.argv) > 3 else os.path.join(_here, _default)
 STOP = os.path.join(os.path.dirname(os.path.abspath(LOG)), "STOP_CAPTURE")
 OWNER = f"# lift: {LIFT}" if LIFT else None
@@ -141,7 +145,7 @@ def main():
         log.write(f"{OWNER}\n")
     log.write(f"\n===== capture started {datetime.now():%Y-%m-%d %H:%M:%S}"
               f"  lift={LIFT or '?'}  port={PORT} =====\n")
-    print(f"lift {LIFT or '(unnamed)'} on {PORT}")
+    print(f"{lift_label(LIFT) if LIFT else '(unnamed lift)'} on {PORT}")
     print(f"logging to {LOG}")
     print(f"stop by creating {STOP}\n")
 

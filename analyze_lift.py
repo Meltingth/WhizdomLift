@@ -26,7 +26,7 @@ import sys
 from collections import defaultdict
 
 LOG = sys.argv[1] if len(sys.argv) > 1 else \
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "capture_lift.log")
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "capture_lift_3.log")
 MIN_MS = int(sys.argv[2]) if len(sys.argv) > 2 else 250
 
 LINE_RE = re.compile(r"^(\d\d:\d\d:\d\d\.\d+)\s+(\d+)\s+([0-9A-Fa-f]+)\s+(\S*)")

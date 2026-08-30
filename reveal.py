@@ -22,8 +22,8 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-LOG_A = os.path.join(HERE, "capture_lift.log")
-LOG_B = os.path.join(HERE, "capture_lift_COM5.log")
+LOG_A = os.path.join(HERE, "capture_lift_3.log")
+LOG_B = os.path.join(HERE, "capture_lift_1.log")
 MIN_MS = 250
 LINE_RE = re.compile(r"^(\d\d:\d\d:\d\d\.\d+)\s+(\d+)\s+([0-9A-Fa-f]+)\s+(\S*)")
 

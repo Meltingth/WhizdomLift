@@ -99,6 +99,40 @@ STATUS_PINS = {
 #   VS7 (bit 5)   would need the encoder to pass 31; it peaks at 23
 #   FIRE 火灾, FIRE RETURN   only close in an alarm condition
 
+# ---------------------------------------------------------------- lift names
+# The building numbers its lifts 1..5. During testing they were reached in a
+# different order and labelled A..E, and those letters are baked into the
+# capture logs and the report, so both spellings have to keep working.
+#
+#   working label   building name   capture file
+#         A            Lift 3       capture_lift_3.log   (reference wiring)
+#         B            Lift 1       capture_lift_1.log   (VS2 line dead)
+#         C            Lift 2       capture_lift_2.log
+#         D            Lift 4       capture_lift_4.log
+#         E            Lift 5       capture_lift_5.log   (number inferred:
+#                                   the only one left once 1-4 are assigned)
+LIFT_ALIAS = {"A": "3", "B": "1", "C": "2", "D": "4", "E": "5"}
+LEGACY_LABEL = {v: k for k, v in LIFT_ALIAS.items()}
+
+
+def lift_id(token):
+    """Accept 'C', 'lift 2', '2' - return the building lift number as a string."""
+    t = str(token).upper().replace("LIFT", "").replace("#", "").strip()
+    return LIFT_ALIAS.get(t, t)
+
+
+def lift_log(token):
+    """Capture filename for a lift, given either spelling of its name."""
+    return f"capture_lift_{lift_id(token)}.log"
+
+
+def lift_label(token):
+    """Human label, e.g. 'Lift 2 (C)'."""
+    n = lift_id(token)
+    old = LEGACY_LABEL.get(n)
+    return f"Lift {n}" + (f" ({old})" if old else "")
+
+
 VS_NAME = {0: "VS2", 1: "VS3", 2: "VS4", 3: "VS5", 4: "VS6", 5: "VS7"}
 ST_RE = re.compile(r"^ST (\d+) ([0-9A-Fa-f]+)")
 

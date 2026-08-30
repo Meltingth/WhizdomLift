@@ -3,8 +3,8 @@ Compare two lifts' captures side by side.
 
     python compare_lifts.py [logA] [logB]
 
-Defaults: capture_lift.log (lift A on COM3) vs the newest capture_lift_COM*.log
-(lift B). Read-only - run any time, both captures keep recording.
+Defaults: capture_lift_3.log (Lift 3, the reference) vs the most recently
+written capture of any other lift. Read-only - run any time, both captures keep recording.
 
 Two independent checks, and it matters not to conflate them:
 
@@ -37,11 +37,14 @@ LINE_RE = re.compile(r"^(\d\d:\d\d:\d\d\.\d+)\s+(\d+)\s+([0-9A-Fa-f]+)\s+(\S*)")
 
 
 def pick_logs():
-    a = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "capture_lift.log")
+    a = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "capture_lift_3.log")
     if len(sys.argv) > 2:
         b = sys.argv[2]
     else:
-        others = sorted(glob.glob(os.path.join(HERE, "capture_lift_COM*.log")),
+        # Any other lift's capture, most recently written first. The old
+        # port-named glob stopped matching once logs were renamed by lift.
+        others = sorted((f for f in glob.glob(os.path.join(HERE, "capture_lift_*.log"))
+                         if not f.endswith(("capture_lift_3.log", "_part1.log"))),
                         key=os.path.getmtime)
         b = others[-1] if others else None
     return a, b
@@ -123,12 +126,12 @@ print("=" * 66)
 print("LIFT-TO-LIFT COMPARISON")
 print("=" * 66)
 
-A = summarise("lift A", log_a)
+A = summarise("reference (Lift 3)", log_a)
 if log_b is None or not os.path.exists(log_b or ""):
-    print("\n  lift B: no capture_lift_COM*.log found yet.")
-    print("  Plug the second board in and start its logger first.")
+    print("\n  second lift: no other capture_lift_N.log found yet.")
+    print("  Start its logger first, e.g. python log_lift.py COM5 2")
     sys.exit(0)
-B = summarise("lift B", log_b)
+B = summarise("comparison lift", log_b)
 if not A or not B:
     sys.exit(0)
 
@@ -145,13 +148,13 @@ if same_pins:
 else:
     print("  wiring   : DIFFERENT pin-to-bit layout:")
     for i in sorted(set(pa) | set(pb)):
-        print(f"               bit {i}: lift A D{pa.get(i, '?')}  "
-              f"lift B D{pb.get(i, '?')}")
+        print(f"               bit {i}: reference D{pa.get(i, chr(63))}  "
+              f"comparison D{pb.get(i, '?')}")
     print("             (decoding compensates for this automatically; it only")
     print("              means the physical wiring order differs)")
 
 ta, tb = max(A["seq"]), max(B["seq"])
-print(f"\n  top code : lift A = {ta}   lift B = {tb}")
+print(f"\n  top code : reference = {ta}   comparison = {tb}")
 if ta == tb:
     print("             Both controllers top out at the same value. That value")
     print("             is what the system transmits for the top landing - the")

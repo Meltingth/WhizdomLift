@@ -1,10 +1,10 @@
 """
 Health-check one lift's capture against the known-good reference wiring.
 
-    python lift_health.py C                 checks capture_lift_C.log
-    python lift_health.py C --md            also print a markdown block for the report
+    python lift_health.py 2                 checks capture_lift_2.log
+    python lift_health.py 2 --md            also print a markdown block for the report
 
-Lift A is the reference: its ten lines were verified against 14 operator-timed
+Lift 3 (labelled A during testing) is the reference: its ten lines were verified against 14 operator-timed
 events, so any other lift is judged by how far it deviates from that, rather
 than by re-deriving everything from scratch and hoping the answer is sane.
 
@@ -31,6 +31,8 @@ import sys
 from collections import defaultdict
 from itertools import combinations
 
+from lift_decode import lift_id, lift_label, lift_log
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 MIN_MS = 250
 LINE_RE = re.compile(r"^(\d\d:\d\d:\d\d\.\d+)\s+(\d+)\s+([0-9A-Fa-f]+)\s+(\S*)")
@@ -45,11 +47,11 @@ ALARM_ONLY = "FIRE / FIRE RETURN"
 
 
 def load(lift):
-    name = "capture_lift.log" if lift.upper() == "A" else f"capture_lift_{lift.upper()}.log"
-    path = os.path.join(HERE, name)
+    path = os.path.join(HERE, lift_log(lift))
     if not os.path.exists(path):
-        raise SystemExit(f"no capture found: {name}\n"
-                         f"  start one with:  python log_lift.py <PORT> {lift.upper()}")
+        raise SystemExit(
+            f"no capture found: {os.path.basename(path)}\n"
+            f"  start one with:  python log_lift.py <PORT> {lift_id(lift)}")
     rows = []
     with open(path, encoding="utf-8") as fh:
         for line in fh:
@@ -79,12 +81,12 @@ def score(stable, bits):
 
 
 def main():
-    lift = (sys.argv[1] if len(sys.argv) > 1 else "A").upper()
+    lift = lift_id(sys.argv[1] if len(sys.argv) > 1 else "3")
     want_md = "--md" in sys.argv
     path, rows, stable = load(lift)
 
     print("=" * 68)
-    print(f"LIFT {lift} — HEALTH CHECK vs lift A reference wiring")
+    print(f"{lift_label(lift)} — HEALTH CHECK vs Lift 3 reference wiring")
     print("=" * 68)
     print(f"  {os.path.basename(path)}: {len(rows)} raw samples, "
           f"{len(stable)} stable states")

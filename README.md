@@ -16,15 +16,15 @@
 | `TEST_REPORT_2026-08-08.md` | รายงานผลการทดสอบวันที่ 8 ส.ค. 2026 |
 | `IODebug/IODebug.ino` | Sketch บนบอร์ด: อ่าน D2–D53 + A0–A15, watch mode ส่ง `ST <ms> <mask>` ทุกการเปลี่ยนแปลง |
 | `LIFT_STATUS.md` | ตารางสถานะลิฟต์ทั้ง 5 + ขั้นตอนทดสอบทีละตัว |
-| `log_lift.py` | ตัวบันทึกถาวรต่อลิฟต์: `python log_lift.py COM3 A` — reconnect อัตโนมัติ, heartbeat 60 วิ, กันข้อมูลลิฟต์ปนกัน |
-| `lift_health.py` | ตรวจสุขภาพลิฟต์เทียบลิฟต์ A: `python lift_health.py C` — ชี้เส้นที่ไม่ส่งสัญญาณ |
+| `log_lift.py` | ตัวบันทึกถาวรต่อลิฟต์: `python log_lift.py COM3 3` — reconnect อัตโนมัติ, heartbeat 60 วิ, กันข้อมูลลิฟต์ปนกัน |
+| `lift_health.py` | ตรวจสุขภาพลิฟต์เทียบลิฟต์ A: `python lift_health.py 2` — ชี้เส้นที่ไม่ส่งสัญญาณ |
 | `lift_decode.py` | Config กลาง: แผนที่ขา→บิตของแต่ละลิฟต์ + ตารางแปลงรหัส→ป้ายชั้น |
 | `analyze_lift.py` | ถอดแผนที่บิตอัตโนมัติจากพฤติกรรมสัญญาณ + ไทม์ไลน์ชั้น |
 | `trips.py` | แยกเที่ยววิ่ง จุดจอด จุดแวะรับ + จำแนกสัญญาณสถานะ |
 | `compare_lifts.py` | เทียบ wiring และรหัสระหว่างลิฟต์หลายตัว |
 | `audit.py` / `reveal.py` / `probe_pin.py` | ตรวจข้อมูลดิบ, ตรวจคำตอบ blind test, ทดสอบขาแบบสด |
 | `monitor.py` / `scan_pins.py` / `selftest.py` | เครื่องมือ serial monitor, สแกนหาขาที่ต่อจริง, ทดสอบบอร์ด |
-| `capture_lift*.log` | ข้อมูลดิบจากการทดสอบ 8 ส.ค. 2026 (ลิฟต์ A + B) |
+| `capture_lift_N.log` | ข้อมูลดิบต่อลิฟต์ (N = เลขลิฟต์จริง 1–5) |
 
 ## เริ่มใช้งาน
 
@@ -34,13 +34,13 @@ arduino-cli compile --fqbn arduino:avr:mega:cpu=atmega2560 IODebug
 arduino-cli upload -p COM3 --fqbn arduino:avr:mega:cpu=atmega2560 IODebug
 
 # เริ่มเก็บข้อมูล — ระบุชื่อลิฟต์เสมอ (หนึ่งโปรเซสต่อลิฟต์)
-python log_lift.py COM3 A
-python log_lift.py COM5 B
+python log_lift.py COM3 3      # Lift 3
+python log_lift.py COM5 2      # Lift 2
 
 # หยุดทุกตัว: สร้างไฟล์ STOP_CAPTURE ในโฟลเดอร์นี้
 
 # ตรวจสุขภาพ + วิเคราะห์
-python lift_health.py A
+python lift_health.py 3
 python trips.py
 python compare_lifts.py
 ```

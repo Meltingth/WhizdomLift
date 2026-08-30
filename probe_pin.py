@@ -21,7 +21,7 @@ import sys
 import time
 
 LOG = sys.argv[1] if len(sys.argv) > 1 else \
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "capture_lift.log")
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "capture_lift_3.log")
 
 # Pins already accounted for - anything else appearing is news.
 KNOWN = {

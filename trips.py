@@ -17,7 +17,7 @@ import sys
 from collections import defaultdict
 
 LOG = sys.argv[1] if len(sys.argv) > 1 else \
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "capture_lift.log")
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "capture_lift_3.log")
 MIN_MS = 250        # shorter than this is contact bounce, not a floor
 DWELL_S = 3.0       # a floor held this long mid-journey counts as a stop
 

@@ -22,7 +22,7 @@ import sys
 from collections import defaultdict
 
 LOG = sys.argv[1] if len(sys.argv) > 1 else \
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "capture_lift.log")
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "capture_lift_3.log")
 
 POSITION_BITS = {25: 0, 26: 1, 27: 2, 28: 3, 29: 4}
 STROBE = 24
