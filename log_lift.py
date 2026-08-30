@@ -194,6 +194,7 @@ def main():
     buf = b""
     ser = None
     rejects = 0           # malformed lines; must stay 0 on a good link
+    last_ms = None        # board clock, to notice restarts
     armed_once = False    # has a capture ever actually started on this port?
     first_fails = 0
     HEARTBEAT_S = 60      # ask the board to restate itself this often
@@ -219,6 +220,16 @@ def main():
                 while b"\n" in buf:
                     raw, buf = buf.split(b"\n", 1)
                     line = raw.decode("utf-8", "replace").strip()
+
+                    # Record which build is talking. On a one-way link this is
+                    # the only chance to learn it, and with five lifts upgraded
+                    # at different times the log has to answer that on its own.
+                    if line.startswith("FW "):
+                        log.write(f"--- {line} "
+                                  f"{datetime.now():%H:%M:%S} ---" + chr(10))
+                        print(f"  board reports: {line}")
+                        continue
+
                     if not line.startswith("ST "):
                         continue
                     parts = line.split()
@@ -238,6 +249,19 @@ def main():
                         rejects += 1
                         continue
                     ms = parts[1]
+
+                    # Board time running backwards means it restarted - a
+                    # reflash, a power blip, or someone pressing reset. Worth
+                    # marking, because the analysis tools split their timeline
+                    # on that seam and because on the Gateway it distinguishes
+                    # "somebody upgraded this lift" from "the link is failing".
+                    ms_i = int(ms)
+                    if last_ms is not None and ms_i < last_ms:
+                        log.write(f"--- board restarted (clock {last_ms} -> "
+                                  f"{ms_i}) {datetime.now():%H:%M:%S} ---"
+                                  + chr(10))
+                        print(chr(10) + "  board restarted at " + datetime.now().strftime("%H:%M:%S"))
+                    last_ms = ms_i
                     pins = closed_pins(mask)
                     stamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
                     log.write(f"{stamp}  {ms:>10}  {parts[2]}  "

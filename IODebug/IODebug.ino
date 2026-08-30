@@ -16,6 +16,17 @@
  * Serial: 115200 baud. Send 'h' for the command list.
  */
 
+/*
+ * Firmware identity, emitted once at boot as:  FW IODebug <version> <date>
+ *
+ * With five lifts upgraded at different times over months, "which build is on
+ * Lift 4?" has to be answerable from the capture log alone - nobody is going
+ * to open a panel to find out. Bump this on every change that alters what the
+ * board reports.
+ */
+#define FW_VERSION "1.1.0"
+#define FW_DATE    "2026-08-30"
+
 const uint8_t  DIG_FIRST = 2;      // D0/D1 are the USB serial pins
 const uint8_t  DIG_LAST  = 53;
 const uint8_t  DIG_COUNT = DIG_LAST - DIG_FIRST + 1;
@@ -109,7 +120,9 @@ void resetStats() {
 void printBanner() {
   Serial.println();
   Serial.println(F("=================================================="));
-  Serial.println(F(" IODebug - Arduino Mega 2560 I/O signal debugger"));
+  Serial.print(F(" IODebug "));
+  Serial.print(F(FW_VERSION));
+  Serial.println(F(" - Arduino Mega 2560 I/O signal debugger"));
   Serial.println(F("=================================================="));
   Serial.print(F(" digital : D"));   Serial.print(DIG_FIRST);
   Serial.print(F("..D"));            Serial.print(DIG_LAST);
@@ -342,6 +355,13 @@ void setup() {
   delay(50);          // let the pullups settle before the first read
   resetStats();
   printBanner();
+
+  // Identity first, then the baseline. A one-way RS485 listener cannot ask
+  // what is running, so the board has to volunteer it.
+  Serial.print(F("FW IODebug "));
+  Serial.print(F(FW_VERSION));
+  Serial.print(' ');
+  Serial.println(F(FW_DATE));
 
   // Baseline, so a listener that joins later knows the starting state without
   // having to ask for it.
