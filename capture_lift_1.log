@@ -1255,3 +1255,193 @@
 20:01:59.757      601447  FFFFFFD7B3FFF  D16,D17,D20,D25,D27
 20:01:59.757      601449  FFFFFFE7B3FFF  D16,D17,D20,D25,D26
 20:02:01.790      603474  FFFFFFEFB3FFF  D16,D17,D20,D26
+20:02:04.599      606247  FFFFFFE7B3FFF  D16,D17,D20,D25,D26
+20:02:04.599      606249  FFFFFFF7B3FFF  D16,D17,D20,D25
+20:02:06.515      608153  FFFFFFF793FFF  D16,D17,D19,D20,D25
+20:02:06.515      608155  FFFFFFF7D3FFF  D16,D17,D19,D25
+20:02:10.035      611561  FFFFFFF7D7FFF  D17,D19,D25
+20:02:10.035      611648  FFFFFFF7F7FFF  D17,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:02:28 ---
+20:02:55.090      656336  FFFFFFF7F7FFF  D17,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:02:58 ---
+20:03:10.535      671648  FFFFFFF7F7FFF  D17,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:03:29 ---
+20:03:55.566      716320  FFFFFFF7F7FFF  D17,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:03:59 ---
+20:04:11.018      731648  FFFFFFF7F7FFF  D17,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:04:29 ---
+20:04:55.579      775843  FFFFFFF7F7FFF  D17,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:04:59 ---
+20:05:07.794      787954  FFFFFFF7D7FFF  D17,D19,D25
+20:05:08.756      788907  FFFFFFF7D3FFF  D16,D17,D19,D25
+20:05:14.587      794698  FFFFFFE7D3FFF  D16,D17,D19,D25,D26
+20:05:14.587      794703  FFFFFFEFD3FFF  D16,D17,D19,D26
+20:05:17.357      797435  FFFFFFE7D3FFF  D16,D17,D19,D25,D26
+20:05:19.401      799459  FFFFFFC7D3FFF  D16,D17,D19,D25,D26,D27
+20:05:19.401      799461  FFFFFFD7D3FFF  D16,D17,D19,D25,D27
+20:05:19.401      799463  FFFFFFDFD3FFF  D16,D17,D19,D27
+20:05:21.986      802038  FFFFFFD7D3FFF  D16,D17,D19,D25,D27
+20:05:24.914      804935  FFFFFFC7D3FFF  D16,D17,D19,D25,D26,D27
+20:05:24.914      804937  FFFFFFCFD3FFF  D16,D17,D19,D26,D27
+20:05:26.990      806850  FFFFFFCF93FFF  D16,D17,D19,D20,D26,D27
+20:05:26.990      807002  FFFFFFCFB3FFF  D16,D17,D20,D26,D27
+20:05:30.014      809573  FFFFFFCFB7FFF  D17,D20,D26,D27
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:05:30 ---
+20:05:40.677      820566  FFFFFFCFB3FFF  D16,D17,D20,D26,D27
+20:05:45.836      825694  FFFFFFC7B3FFF  D16,D17,D20,D25,D26,D27
+20:05:45.836      825696  FFFFFFD7B3FFF  D16,D17,D20,D25,D27
+20:05:48.771      828594  FFFFFFDFB3FFF  D16,D17,D20,D27
+20:05:51.369      831168  FFFFFFD7B3FFF  D16,D17,D20,D25,D27
+20:05:51.369      831170  FFFFFFE7B3FFF  D16,D17,D20,D25,D26
+20:05:53.403      833196  FFFFFFEFB3FFF  D16,D17,D20,D26
+20:05:56.164      835736  FFFFFFEFB3FFF  D16,D17,D20,D26
+20:05:56.164      835929  FFFFFFE7B3FFF  D16,D17,D20,D25,D26
+20:05:56.164      835931  FFFFFFF7B3FFF  D16,D17,D20,D25
+20:05:58.045      837794  FFFFFFF793FFF  D16,D17,D19,D20,D25
+20:05:58.045      837796  FFFFFFF7D3FFF  D16,D17,D19,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:06:00 ---
+20:06:01.601      841322  FFFFFFF7D7FFF  D17,D19,D25
+20:06:13.237      852875  FFFFFFF7F7FFF  D17,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:06:30 ---
+20:06:55.999      895276  FFFFFFF7F7FFF  D17,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:07:00 ---
+20:07:13.733      912875  FFFFFFF7F7FFF  D17,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:07:31 ---
+20:07:56.056      954847  FFFFFFF7F7FFF  D17,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:08:01 ---
+20:08:14.231      972875  FFFFFFF7F7FFF  D17,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:08:31 ---
+20:08:56.519     1014817  FFFFFFF7F7FFF  D17,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:09:01 ---
+20:09:13.909     1032064  FFFFFFF7FFFFF  D25
+20:09:14.593     1032741  FFFFFFF7F7FFF  D17,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:09:31 ---
+20:09:57.017     1074821  FFFFFFF7F7FFF  D17,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:10:02 ---
+20:10:15.078     1092741  FFFFFFF7F7FFF  D17,D25
+20:10:20.598     1098213  FFFFFFF7D7FFF  D17,D19,D25
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:10:32 ---
+20:10:34.476     1111970  FFFFFFF7D3FFF  D16,D17,D19,D25
+20:10:40.319     1117763  FFFFFFE7D3FFF  D16,D17,D19,D25,D26
+20:10:40.319     1117765  FFFFFFEFD3FFF  D16,D17,D19,D26
+20:10:43.117     1120539  FFFFFFE7D3FFF  D16,D17,D19,D25,D26
+20:10:45.119     1122523  FFFFFFC7D3FFF  D16,D17,D19,D25,D26,D27
+20:10:45.119     1122525  FFFFFFD7D3FFF  D16,D17,D19,D25,D27
+20:10:45.119     1122528  FFFFFFDFD3FFF  D16,D17,D19,D27
+20:10:47.710     1125102  FFFFFFD7D3FFF  D16,D17,D19,D25,D27
+20:10:50.596     1127958  FFFFFFC7D3FFF  D16,D17,D19,D25,D26,D27
+20:10:50.596     1127961  FFFFFFCFD3FFF  D16,D17,D19,D26,D27
+20:10:52.707     1130061  FFFFFFC7D3FFF  D16,D17,D19,D25,D26,D27
+20:10:54.521     1131857  FFFFFF87D3FFF  D16,D17,D19,D25,D26,D27,D28
+20:10:54.521     1131858  FFFFFFB7D3FFF  D16,D17,D19,D25,D28
+20:10:54.521     1131860  FFFFFFBFD3FFF  D16,D17,D19,D28
+20:10:56.347     1133672  FFFFFFB7D3FFF  D16,D17,D19,D25,D28
+20:10:57.361     1134679  FFFFFFB7D3FFF  D16,D17,D19,D25,D28
+20:10:58.198     1135507  FFFFFFA7D3FFF  D16,D17,D19,D25,D26,D28
+20:10:58.198     1135510  FFFFFFAFD3FFF  D16,D17,D19,D26,D28
+20:11:00.475     1137758  FFFFFFA7D3FFF  D16,D17,D19,D25,D26,D28
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:11:02 ---
+20:11:02.752     1140020  FFFFFF87D3FFF  D16,D17,D19,D25,D26,D27,D28
+20:11:02.752     1140021  FFFFFF97D3FFF  D16,D17,D19,D25,D27,D28
+20:11:02.752     1140023  FFFFFF9FD3FFF  D16,D17,D19,D27,D28
+20:11:04.716     1141962  FFFFFF97D3FFF  D16,D17,D19,D25,D27,D28
+20:11:09.072     1146296  FFFFFF97D7FFF  D17,D19,D25,D27,D28
+20:11:17.718     1154872  FFFFFF97F7FFF  D17,D25,D27,D28
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:11:32 ---
+20:11:57.531     1194353  FFFFFF97F7FFF  D17,D25,D27,D28
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:12:03 ---
+20:12:15.475     1212146  FFFFFF97D7FFF  D17,D19,D25,D27,D28
+20:12:16.387     1213059  FFFFFF97D3FFF  D16,D17,D19,D25,D27,D28
+20:12:19.707     1216352  FFFFFF87D3FFF  D16,D17,D19,D25,D26,D27,D28
+20:12:19.707     1216355  FFFFFF8FD3FFF  D16,D17,D19,D26,D27,D28
+20:12:22.196     1218811  FFFFFF87D3FFF  D16,D17,D19,D25,D26,D27,D28
+20:12:24.042     1220636  FFFFFF07D3FFF  D16,D17,D19,D25,D26,D27,D28,D29
+20:12:24.042     1220638  FFFFFF37D3FFF  D16,D17,D19,D25,D28,D29
+20:12:24.042     1220640  FFFFFF3FD3FFF  D16,D17,D19,D28,D29
+20:12:24.042     1220642  FFFFFF7FD3FFF  D16,D17,D19,D29
+20:12:25.885     1222471  FFFFFF77D3FFF  D16,D17,D19,D25,D29
+20:12:27.711     1224287  FFFFFF67D3FFF  D16,D17,D19,D25,D26,D29
+20:12:27.711     1224290  FFFFFF6FD3FFF  D16,D17,D19,D26,D29
+20:12:29.558     1226122  FFFFFF67D3FFF  D16,D17,D19,D25,D26,D29
+20:12:31.386     1227936  FFFFFF47D3FFF  D16,D17,D19,D25,D26,D27,D29
+20:12:31.386     1227938  FFFFFF57D3FFF  D16,D17,D19,D25,D27,D29
+20:12:31.386     1227940  FFFFFF5FD3FFF  D16,D17,D19,D27,D29
+20:12:33.466     1229841  FFFFFF57D3FFF  D16,D17,D19,D25,D27,D29
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:12:33 ---
+20:12:35.269     1231784  FFFFFF47D3FFF  D16,D17,D19,D25,D26,D27,D29
+20:12:35.269     1231789  FFFFFF4FD3FFF  D16,D17,D19,D26,D27,D29
+20:12:37.080     1233423  FFFFFF4F93FFF  D16,D17,D19,D20,D26,D27,D29
+20:12:37.081     1233586  FFFFFF4FB3FFF  D16,D17,D20,D26,D27,D29
+20:12:39.901     1236384  FFFFFF4FB7FFF  D17,D20,D26,D27,D29
+20:12:49.836     1246226  FFFFFF4FB3FFF  D16,D17,D20,D26,D27,D29
+20:12:54.868     1251225  FFFFFF47B3FFF  D16,D17,D20,D25,D26,D27,D29
+20:12:54.869     1251227  FFFFFF57B3FFF  D16,D17,D20,D25,D27,D29
+20:12:56.871     1253213  FFFFFF5FB3FFF  D16,D17,D20,D27,D29
+20:12:57.901     1254231  FFFFFF5FB3FFF  D16,D17,D20,D27,D29
+20:12:58.798     1255112  FFFFFF57B3FFF  D16,D17,D20,D25,D27,D29
+20:12:58.799     1255114  FFFFFF67B3FFF  D16,D17,D20,D25,D26,D29
+20:13:00.629     1256943  FFFFFF6FB3FFF  D16,D17,D20,D26,D29
+20:13:02.465     1258763  FFFFFF67B3FFF  D16,D17,D20,D25,D26,D29
+20:13:02.465     1258765  FFFFFF77B3FFF  D16,D17,D20,D25,D29
+--- FW IODebug 1.2.2 2026-08-31 LIFT=1 20:13:03 ---
+20:13:04.308     1260592  FFFFFF7FB3FFF  D16,D17,D20,D29
+20:13:06.160     1262412  FFFFFF57B3FFF  D16,D17,D20,D25,D27,D29
+20:13:06.160     1262414  FFFFFF07B3FFF  D16,D17,D20,D25,D26,D27,D28,D29
+20:13:06.160     1262419  FFFFFF87B3FFF  D16,D17,D20,D25,D26,D27,D28
+20:13:07.990     1264243  FFFFFF8FB3FFF  D16,D17,D20,D26,D27,D28
+20:13:09.796     1266024  FFFFFF87B3FFF  D16,D17,D20,D25,D26,D27,D28
+20:13:09.796     1266026  FFFFFF97B3FFF  D16,D17,D20,D25,D27,D28
+20:13:11.651     1267862  FFFFFF9FB3FFF  D16,D17,D20,D27,D28
+20:13:13.473     1269672  FFFFFF97B3FFF  D16,D17,D20,D25,D27,D28
+20:13:13.473     1269675  FFFFFFA7B3FFF  D16,D17,D20,D25,D26,D28
+20:13:15.747     1271938  FFFFFFAFB3FFF  D16,D17,D20,D26,D28
+20:13:18.033     1274206  FFFFFFA7B3FFF  D16,D17,D20,D25,D26,D28
+20:13:18.034     1274208  FFFFFFB7B3FFF  D16,D17,D20,D25,D28
+20:13:19.877     1276024  FFFFFFBFB3FFF  D16,D17,D20,D28
+20:13:21.714     1277846  FFFFFF87B3FFF  D16,D17,D20,D25,D26,D27,D28
+20:13:21.715     1277851  FFFFFFC7B3FFF  D16,D17,D20,D25,D26,D27
+--- link lost 20:13:24: GetOverlappedResult failed (PermissionError(13, 'Access is denied.', None, 5)) ---
+--- link lost 20:13:27: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:13:30: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:13:33: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:13:36: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:13:39: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:13:42: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:13:45: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:13:48: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:13:51: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:13:54: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:13:58: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:01: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:04: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:07: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:10: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:13: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:16: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:19: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:22: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:25: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:28: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:31: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:34: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:37: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:40: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:43: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:46: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:49: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:52: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:55: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:14:58: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:15:01: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:15:04: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:15:07: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:15:10: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:15:13: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:15:17: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:15:20: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:15:23: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:15:26: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:15:29: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:15:32: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:15:35: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 20:15:38: could not open port 'COM4': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
