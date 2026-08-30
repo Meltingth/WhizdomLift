@@ -1,0 +1,10 @@
+# Python dependencies
+#   python -m pip install -r requirements.txt
+#
+# pyserial is the only third-party package the toolkit needs. Without it
+# log_lift.py, lift_decode.py, monitor.py, scan_pins.py and selftest.py all die
+# at import with "ModuleNotFoundError: No module named 'serial'" before they
+# ever reach the hardware - which reads like a broken board rather than a
+# missing package. The offline analysers (analyze_lift, trips, compare_lifts,
+# audit, reveal) need nothing beyond the standard library.
+pyserial>=3.5
