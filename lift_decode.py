@@ -133,6 +133,99 @@ def lift_label(token):
     return f"Lift {n}" + (f" ({old})" if old else "")
 
 
+
+# ------------------------------------------------------- per-pin debouncing
+def debounce_pins(rows, hold_ms=60, settle_ms=150, npins=52, first_pin=2):
+    """Rebuild the state timeline, settling each pin on its own.
+
+    rows: [(clock, board_ms, frozenset_of_low_pins)] straight from a capture.
+
+    Filtering whole states by how long they persist fails as soon as ONE line
+    chatters: a contact bouncing at mains frequency makes every combined state
+    shorter than the threshold, so a capture with nine clean signals and one
+    noisy one is thrown away entirely. Lift 2 produced 132,696 samples and only
+    six surviving states that way.
+
+    Debouncing each pin separately keeps the clean lines intact and discards
+    only the noise on the offending one: a pin's transition counts only if the
+    new level then holds for hold_ms.
+    """
+    if not rows:
+        return []
+
+    # A capture log accumulates sessions, and the board's millisecond counter
+    # restarts at zero each time it is reset. Left alone, that makes durations
+    # go negative across the seam and manufactures impossible states - Lift 3
+    # briefly decoded as code 63, every position bit closed at once. Split the
+    # log wherever board time steps backwards and settle each run separately.
+    segments, start = [], 0
+    for i in range(1, len(rows)):
+        if rows[i][1] < rows[i - 1][1]:
+            segments.append(rows[start:i])
+            start = i
+    segments.append(rows[start:])
+    if len(segments) > 1:
+        out = []
+        for seg in segments:
+            out.extend(debounce_pins(seg, hold_ms, settle_ms, npins, first_pin))
+        return out
+
+    # transitions per pin
+    per = {p: [] for p in range(first_pin, first_pin + npins)}
+    prev = None
+    for clock, t, low in rows:
+        for p in per:
+            lvl = p in low                     # True = contact closed (LOW)
+            if prev is None or (p in prev) != lvl:
+                per[p].append((t, lvl))
+        prev = low
+
+    # keep a transition only if its level survives hold_ms
+    events = []
+    for p, trans in per.items():
+        settled = None
+        for i, (t, lvl) in enumerate(trans):
+            nxt = trans[i + 1][0] if i + 1 < len(trans) else t + hold_ms + 1
+            if nxt - t < hold_ms and settled is not None:
+                continue                       # glitch: too brief to be real
+            if lvl != settled:
+                events.append((t, p, lvl))
+                settled = lvl
+
+    events.sort(key=lambda e: e[0])
+    clock_at = {t: c for c, t, _ in rows}
+
+    # Replay the accepted events. Two levels of coalescing are needed and they
+    # fix different faults:
+    #   - events sharing a timestamp are applied together, so a simultaneous
+    #     multi-bit change yields one state rather than one per bit;
+    #   - a composite state that does not then last settle_ms is dropped,
+    #     because relay contacts within a group do not switch on the same
+    #     millisecond and the few-ms straddle is a bogus intermediate code.
+    raw_states, cur = [], set()
+    i = 0
+    while i < len(events):
+        t = events[i][0]
+        while i < len(events) and events[i][0] == t:
+            _, p, lvl = events[i]
+            cur.add(p) if lvl else cur.discard(p)
+            i += 1
+        snap = frozenset(cur)
+        if raw_states and raw_states[-1][2] == snap:
+            continue
+        raw_states.append((clock_at.get(t, ""), t, snap))
+
+    states = []
+    for k, (clock, t, snap) in enumerate(raw_states):
+        dur = (raw_states[k + 1][1] - t) if k + 1 < len(raw_states) else settle_ms
+        if dur < settle_ms:
+            continue
+        if states and states[-1][2] == snap:
+            continue
+        states.append((clock, t, snap))
+    return states
+
+
 VS_NAME = {0: "VS2", 1: "VS3", 2: "VS4", 3: "VS5", 4: "VS6", 5: "VS7"}
 ST_RE = re.compile(r"^ST (\d+) ([0-9A-Fa-f]+)")
 

@@ -31,7 +31,7 @@ import sys
 from collections import defaultdict
 from itertools import combinations
 
-from lift_decode import lift_id, lift_label, lift_log
+from lift_decode import debounce_pins, lift_id, lift_label, lift_log
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MIN_MS = 250
@@ -60,12 +60,35 @@ def load(lift):
                 pins = frozenset(int(p[1:]) for p in m.group(4).split(",")
                                  if p.startswith("D"))
                 rows.append((m.group(1), int(m.group(2)), pins))
-    stable = []
-    for i, (clock, t, pins) in enumerate(rows):
-        dur = (rows[i + 1][1] - t) if i + 1 < len(rows) else MIN_MS
-        if dur >= MIN_MS and (not stable or stable[-1][2] != pins):
-            stable.append((clock, t, pins))
+    # Settle each line on its own. A single chattering contact would otherwise
+    # make every combined state too short-lived to survive a whole-state filter.
+    stable = debounce_pins(rows, hold_ms=MIN_MS)
     return path, rows, stable
+
+
+def pulse_widths(rows):
+    """For each pin, how long it stayed closed on each occasion, in ms."""
+    segs = [[]]
+    for r in rows:
+        if segs[-1] and r[1] < segs[-1][-1][1]:      # board reset between runs
+            segs.append([])
+        segs[-1].append(r)
+    out = {}
+    for pin in list(REF_BITS) + list(REF_STATUS):
+        w = []
+        for seg in segs:
+            prev = start = None
+            for _, t, low in seg:
+                cur = pin in low
+                if prev is None:
+                    prev, start = cur, t
+                    continue
+                if cur != prev:
+                    if prev:
+                        w.append(t - start)
+                    prev, start = cur, t
+        out[pin] = w
+    return out
 
 
 def decode(pins, bits):
@@ -110,22 +133,47 @@ def main():
     print("\n" + "-" * 68)
     print("1. EXPECTED LINES")
     print("-" * 68)
-    print(f"  {'pin':<5} {'expected':<12} {'ever closed':>12} {'toggles':>8}   status")
+    # How long does each line actually hold once closed? A line that only ever
+    # closes for a couple of milliseconds is not a relay contact - a mechanical
+    # relay needs 5-10ms merely to close - so counting raw LOW samples and
+    # calling it "ok" hides a line that carries nothing but induced noise.
+    widths = pulse_widths(rows)
+
+    def classify(pin):
+        seen = low_count.get(pin, 0)
+        if seen == 0:
+            return "MISSING", None
+        w = widths.get(pin) or []
+        if w and max(w) < 50:
+            return "NOISE", max(w)
+        return "ok", (max(w) if w else None)
+
+    print(f"  {'pin':<5} {'expected':<12} {'closings':>9} {'longest':>9}   status")
     missing_bits, missing_status = [], []
+    noisy = []
     for pin, bit in sorted(REF_BITS.items(), key=lambda kv: kv[1]):
-        seen = low_count.get(pin, 0)
-        if seen == 0:
+        mark, longest = classify(pin)
+        if mark == "MISSING":
             missing_bits.append((pin, bit))
-        mark = "MISSING" if seen == 0 else "ok"
-        print(f"  D{pin:<4} {VS[bit] + ' bit' + str(bit):<12} {seen:>12} "
-              f"{toggles.get(pin, 0):>8}   {mark}")
+        elif mark == "NOISE":
+            noisy.append((pin, VS[bit], longest))
+        shown = f"{longest}ms" if longest is not None else "-"
+        print(f"  D{pin:<4} {VS[bit] + ' bit' + str(bit):<12} "
+              f"{len(widths.get(pin) or []):>9} {shown:>9}   {mark}")
     for pin, name in sorted(REF_STATUS.items()):
-        seen = low_count.get(pin, 0)
-        if seen == 0:
+        mark, longest = classify(pin)
+        if mark == "MISSING":
             missing_status.append((pin, name))
-        mark = "MISSING" if seen == 0 else "ok"
-        print(f"  D{pin:<4} {name:<12} {seen:>12} "
-              f"{toggles.get(pin, 0):>8}   {mark}")
+        elif mark == "NOISE":
+            noisy.append((pin, name, longest))
+        shown = f"{longest}ms" if longest is not None else "-"
+        print(f"  D{pin:<4} {name:<12} {len(widths.get(pin) or []):>9} "
+              f"{shown:>9}   {mark}")
+
+    if noisy:
+        print(f"\n  NOISE = the line closes, but never for longer than 50ms.")
+        print(f"  A relay contact cannot behave that way; this is an open-ended")
+        print(f"  wire picking up mains hum, so the signal is not arriving.")
 
     extra = sorted(p for p in low_count if p not in REF_BITS and p not in REF_STATUS)
     if extra:
@@ -270,6 +318,8 @@ def main():
             faults.append(f"D{p} ({VS[b]}) unseen, but the car never went high "
                           f"enough to need it — inconclusive")
     faults += [f"D{p} ({n}) sends nothing" for p, n in missing_status]
+    faults += [f"D{p} ({n}) carries only noise - longest closure {w}ms"
+               for p, n, w in noisy]
     if not faults and verdict_bits == "OK":
         print("  HEALTHY - all ten lines present and decoding matches lift A.")
     else:
