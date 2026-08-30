@@ -153,6 +153,13 @@ def main():
             return "MISSING", None, 0
         w = sorted(widths.get(pin) or [])
         if not w:
+            # Closed for the entire capture, so no closure ever completed and
+            # there is nothing to measure. That is exactly how a
+            # normally-closed line such as SAFETY should behave - counting it
+            # as missing inverts the verdict on the healthiest signal there is.
+            frac = seen / max(len(rows), 1)
+            if frac > 0.9:
+                return "HELD", None, 0
             return "MISSING", None, 0
         p99 = w[min(len(w) - 1, int(len(w) * 0.99))]
         long_ones = sum(1 for x in w if x >= 50)
@@ -169,7 +176,8 @@ def main():
             missing_bits.append((pin, bit))
         elif mark == "NOISE":
             noisy.append((pin, VS[bit], longest, long_ones))
-        shown = f"{longest}ms" if longest is not None else "-"
+        shown = f"{longest}ms" if longest is not None else (
+            "whole run" if mark == "HELD" else "-")
         print(f"  D{pin:<4} {VS[bit] + ' bit' + str(bit):<12} "
               f"{len(widths.get(pin) or []):>9} {shown:>9}   {mark}")
     for pin, name in sorted(REF_STATUS.items()):
@@ -178,7 +186,8 @@ def main():
             missing_status.append((pin, name))
         elif mark == "NOISE":
             noisy.append((pin, name, longest, long_ones))
-        shown = f"{longest}ms" if longest is not None else "-"
+        shown = f"{longest}ms" if longest is not None else (
+            "whole run" if mark == "HELD" else "-")
         print(f"  D{pin:<4} {name:<12} {len(widths.get(pin) or []):>9} "
               f"{shown:>9}   {mark}")
 
@@ -335,6 +344,12 @@ def main():
                for p, n, w, c in noisy]
     if not faults and verdict_bits == "OK":
         print("  HEALTHY - all ten lines present and decoding matches lift A.")
+        held = [p for p in list(REF_BITS) + list(REF_STATUS)
+                if classify(p)[0] == "HELD"]
+        if held:
+            print("  " + ", ".join(f"D{p}" for p in sorted(held))
+                  + " stayed closed for the whole run, as a normally-closed"
+                  " line should.")
     else:
         for f in faults:
             print(f"  - {f}")
