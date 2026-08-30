@@ -2,8 +2,14 @@
 __pycache__/
 *.pyc
 
-# Arduino build output (rebuild with arduino-cli; boards already carry the sketch)
-IODebug/build/
+# Arduino build output. The linker artefacts are regenerable and large, but the
+# plain .hex is kept: it is exactly what is flashed to the boards, so a
+# replacement Mega can be programmed for Lift 2/4/5 with avrdude alone, without
+# installing the whole toolchain first.
+IODebug/build/*
+!IODebug/build/arduino.avr.mega/
+IODebug/build/arduino.avr.mega/*
+!IODebug/build/arduino.avr.mega/IODebug.ino.hex
 
 # Runtime control flag for log_lift.py
 STOP_CAPTURE
