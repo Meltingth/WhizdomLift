@@ -53,17 +53,32 @@ def load(lift):
             f"no capture found: {os.path.basename(path)}\n"
             f"  start one with:  python log_lift.py <PORT> {lift_id(lift)}")
     rows = []
+    # Where one capture session ends and the next begins. Nothing was recorded
+    # across that gap, so the last state before it must not be credited with
+    # the time it spans - we simply were not looking. This is not the same as
+    # a board reset: the board keeps running, its clock does not go backwards,
+    # and nothing in the data itself gives the gap away.
+    session_starts = set()
+    fresh = False
     with open(path, encoding="utf-8") as fh:
         for line in fh:
-            m = LINE_RE.match(line.strip())
+            line = line.strip()
+            if line.startswith("===== capture started"):
+                fresh = True
+                continue
+            m = LINE_RE.match(line)
             if m:
                 pins = frozenset(int(p[1:]) for p in m.group(4).split(",")
                                  if p.startswith("D"))
-                rows.append((m.group(1), int(m.group(2)), pins))
+                row = (m.group(1), int(m.group(2)), pins)
+                if fresh:
+                    session_starts.add(row[:2])
+                    fresh = False
+                rows.append(row)
     # Settle each line on its own. A single chattering contact would otherwise
     # make every combined state too short-lived to survive a whole-state filter.
     stable = debounce_pins(rows, hold_ms=MIN_MS)
-    return path, rows, stable
+    return path, rows, stable, session_starts
 
 
 def pulse_widths(rows):
@@ -106,7 +121,7 @@ def score(stable, bits):
 def main():
     lift = lift_id(sys.argv[1] if len(sys.argv) > 1 else "3")
     want_md = "--md" in sys.argv
-    path, rows, stable = load(lift)
+    path, rows, stable, session_starts = load(lift)
 
     print("=" * 68)
     print(f"{lift_label(lift)} — HEALTH CHECK vs Lift 3 reference wiring")
@@ -261,8 +276,24 @@ def main():
     bits_for_move = REF_BITS if ref_step >= 0.99 else (best[1] if best else REF_BITS)
     kinds = []
     seq = [decode(p, bits_for_move) for _, _, p in stable]
-    hold = [(stable[i + 1][1] - stable[i][1]) / 1000 if i + 1 < len(stable) else 0
-            for i in range(len(stable))]
+    # Board time restarts at 0 on every reboot and this log accumulates many
+    # sessions, so differencing straight across that seam gives a large
+    # negative hold. pulse_widths() above already splits on it; this did not,
+    # and the negatives then dragged the per-pin totals below zero - which is
+    # what the impossible negative percentages in section 3 were. A sample
+    # sitting on a seam has no measurable hold, so give it none.
+    hold = []
+    for i in range(len(stable)):
+        if i + 1 >= len(stable):
+            hold.append(0.0)
+            continue
+        # A sample sitting on a recording gap has no measurable hold either:
+        # the state may have changed the moment we stopped listening.
+        if stable[i + 1][:2] in session_starts:
+            hold.append(0.0)
+            continue
+        d = (stable[i + 1][1] - stable[i][1]) / 1000
+        hold.append(d if d >= 0 else 0.0)
     for i, f in enumerate(seq):
         if hold[i] >= 3.0:
             kinds.append("idle")
