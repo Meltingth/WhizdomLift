@@ -58,17 +58,26 @@ OWNER = f"# lift: {LIFT}" if LIFT else None
 
 
 def check_owner():
-    """Refuse to append one lift's capture onto another lift's log."""
-    if not (OWNER and os.path.exists(LOG)):
+    """Refuse to append one lift's capture onto another lift's log.
+
+    Compare normalised ids rather than raw text. Logs recorded before the
+    letters were mapped onto building numbers carry the old spelling -
+    capture_lift_1.log is stamped "# lift: B" - and B and 1 are the same lift.
+    A literal string compare reads its own history as a different lift and
+    refuses to record the one the file belongs to, which would land at the
+    worst possible moment: the first capture after a repair.
+    """
+    if not (LIFT and os.path.exists(LOG)):
         return
     with open(LOG, encoding="utf-8") as fh:
         for line in fh:
             if line.startswith("# lift:"):
-                if line.strip() != OWNER:
+                stamped = line.strip()[len("# lift:"):].strip()
+                if lift_id(stamped) != LIFT:
                     raise SystemExit(
                         f"REFUSING TO START\n"
                         f"  {os.path.basename(LOG)} already belongs to "
-                        f"{line.strip()[8:]}, not {LIFT}.\n"
+                        f"{lift_label(stamped)}, not {lift_label(LIFT)}.\n"
                         f"  Pick a different lift name or move the old file "
                         f"aside.")
                 return
