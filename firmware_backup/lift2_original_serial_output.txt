@@ -1,0 +1,236 @@
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
+  COIL2: 1
+Binary: 000010  Decimal: 2
+  COIL1: 1
