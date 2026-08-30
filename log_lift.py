@@ -106,13 +106,19 @@ def _set_mode(ser, cmd, want, opposite, tries=4):
     return False
 
 
-def listen_check(ser, seconds=12.0):
+def listen_check(ser, seconds=75.0):
     """Confirm the board is already reporting, without sending anything.
 
     Replaces arm() on a one-way link. The point of arm() was never the
     commands themselves but the verification - a capture that silently never
     started is the failure in lesson 6.2. Here the equivalent proof is simply
     that ST lines turn up on their own; the sketch arms itself at boot.
+
+    The wait must exceed the board's heartbeat interval. A parked lift changes
+    nothing, so the only traffic is that heartbeat every 60s; a shorter window
+    reports a perfectly good link as dead and sends the reader off to check
+    A/B polarity for a fault that does not exist. Waiting 75s to fail is slow,
+    but a wrong answer costs far more than the wait.
     """
     ser.dtr = False
     ser.rts = False
@@ -125,7 +131,8 @@ def listen_check(ser, seconds=12.0):
         if b"\nST " in buf or buf.startswith(b"ST "):
             return True
     raise serial.SerialException(
-        f"no ST lines in {seconds:.0f}s - the board is not reporting. "
+        f"no ST lines in {seconds:.0f}s - longer than the board's 60s "
+        f"heartbeat, so this is a real fault rather than a quiet lift. "
         f"Check the A/B pair is not swapped, that DE and RE are tied high, "
         f"and that the board has power.")
 
@@ -186,6 +193,7 @@ def main():
     beats = 0
     buf = b""
     ser = None
+    rejects = 0           # malformed lines; must stay 0 on a good link
     armed_once = False    # has a capture ever actually started on this port?
     first_fails = 0
     HEARTBEAT_S = 60      # ask the board to restate itself this often
@@ -199,8 +207,8 @@ def main():
                 else:
                     arm(ser)
                 armed_once = True
-                log.write(f"--- armed, watch mode confirmed "
-                          f"{datetime.now():%H:%M:%S} ---\n")
+                mode = "listening (one-way)" if LISTEN_ONLY else "armed, watch mode confirmed"
+                log.write(f"--- {mode} {datetime.now():%H:%M:%S} ---" + chr(10))
                 print("listening - board is reporting on its own"
                       if LISTEN_ONLY else
                       "armed - watch mode confirmed by the board")
@@ -214,9 +222,22 @@ def main():
                     if not line.startswith("ST "):
                         continue
                     parts = line.split()
-                    if len(parts) != 3:
+                    # Validate before trusting. A USB cable either delivers a
+                    # byte or does not; RS485 can hand over a corrupted one, and
+                    # a mask short by a digit still parses as valid hex while
+                    # shifting every bit - silently wrong data rather than an
+                    # error. Length and character set are checked, and the
+                    # reject rate is reported: on a point-to-point link it
+                    # should be exactly zero.
+                    if len(parts) != 3 or len(parts[2]) != 13:
+                        rejects += 1
                         continue
-                    ms, mask = parts[1], int(parts[2], 16)
+                    try:
+                        mask = int(parts[2], 16)
+                    except ValueError:
+                        rejects += 1
+                        continue
+                    ms = parts[1]
                     pins = closed_pins(mask)
                     stamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
                     log.write(f"{stamp}  {ms:>10}  {parts[2]}  "
@@ -236,10 +257,10 @@ def main():
             if time.time() - last_report >= 15:
                 mins = (time.time() - started) / 60
                 print(f"\r  {mins:6.1f} min   {changes:6d} lines   "
-                      f"{beats} heartbeats   ", end="", flush=True)
+                      f"{beats} beats   {rejects} rejected   ", end="", flush=True)
                 last_report = time.time()
 
-        except (serial.SerialException, OSError) as e:
+        except (serial.SerialException, OSError, ValueError) as e:
             log.write(f"--- link lost {datetime.now():%H:%M:%S}: {e} ---\n")
             try:
                 if ser:
@@ -267,9 +288,14 @@ def main():
         ser.close()
     mins = (time.time() - started) / 60
     log.write(f"===== capture stopped {datetime.now():%Y-%m-%d %H:%M:%S}, "
-              f"{changes} changes in {mins:.1f} min =====\n")
+              f"{changes} changes in {mins:.1f} min, "
+              f"{rejects} rejected =====" + chr(10))
     log.close()
     print(f"\n\nstopped: {changes} state changes over {mins:.1f} minutes")
+    if rejects:
+        pct = 100 * rejects / max(changes + rejects, 1)
+        print(f"WARNING: {rejects} malformed lines rejected ({pct:.2f}%) - "
+              f"check termination, wiring and baud rate")
     print(f"log: {LOG}")
 
 
