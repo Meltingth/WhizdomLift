@@ -24,7 +24,8 @@ import serial
 from serial.tools import list_ports
 
 # usage: python log_lift.py PORT [LIFT] [logfile]
-#     e.g. python log_lift.py COM5 2        -> capture_lift_2.log
+#     e.g. python log_lift.py COM5 2            -> capture_lift_2.log
+#          python log_lift.py COM7 2 --listen  -> one-way RS485 link
 #          (the old letters A-E still work: A=Lift 3, B=Lift 1,
 #           C=Lift 2, D=Lift 4, E=Lift 5)
 #
@@ -37,8 +38,13 @@ from serial.tools import list_ports
 # All loggers share one STOP_CAPTURE file, so creating it stops every capture.
 from lift_decode import lift_id, lift_label     # single source of lift naming
 
-PORT = sys.argv[1].upper() if len(sys.argv) > 1 else "COM3"
-LIFT = lift_id(sys.argv[2]) if len(sys.argv) > 2 else None
+# --listen: never transmit, just record. Required on a one-way RS485 link
+# where the transceiver is strapped transmit-only and the board cannot hear us.
+LISTEN_ONLY = "--listen" in sys.argv
+_args = [a for a in sys.argv[1:] if not a.startswith("--")]
+
+PORT = _args[0].upper() if _args else "COM3"
+LIFT = lift_id(_args[1]) if len(_args) > 1 else None
 BAUD = 115200
 DIG_FIRST = 2
 _here = os.path.dirname(os.path.abspath(__file__))
@@ -46,7 +52,7 @@ if LIFT:
     _default = f"capture_lift_{LIFT}.log"
 else:
     _default = f"capture_lift_{PORT}.log"
-LOG = sys.argv[3] if len(sys.argv) > 3 else os.path.join(_here, _default)
+LOG = _args[2] if len(_args) > 2 else os.path.join(_here, _default)
 STOP = os.path.join(os.path.dirname(os.path.abspath(LOG)), "STOP_CAPTURE")
 OWNER = f"# lift: {LIFT}" if LIFT else None
 
@@ -98,6 +104,30 @@ def _set_mode(ser, cmd, want, opposite, tries=4):
                 break              # toggled the wrong way - go round again
         time.sleep(0.2)
     return False
+
+
+def listen_check(ser, seconds=12.0):
+    """Confirm the board is already reporting, without sending anything.
+
+    Replaces arm() on a one-way link. The point of arm() was never the
+    commands themselves but the verification - a capture that silently never
+    started is the failure in lesson 6.2. Here the equivalent proof is simply
+    that ST lines turn up on their own; the sketch arms itself at boot.
+    """
+    ser.dtr = False
+    ser.rts = False
+    time.sleep(0.2)
+    ser.reset_input_buffer()
+    end = time.time() + seconds
+    buf = b""
+    while time.time() < end:
+        buf += ser.read(512)
+        if b"\nST " in buf or buf.startswith(b"ST "):
+            return True
+    raise serial.SerialException(
+        f"no ST lines in {seconds:.0f}s - the board is not reporting. "
+        f"Check the A/B pair is not swapped, that DE and RE are tied high, "
+        f"and that the board has power.")
 
 
 def arm(ser):
@@ -164,11 +194,16 @@ def main():
         try:
             if ser is None:
                 ser = serial.Serial(PORT, BAUD, timeout=0.5)
-                arm(ser)
+                if LISTEN_ONLY:
+                    listen_check(ser)
+                else:
+                    arm(ser)
                 armed_once = True
                 log.write(f"--- armed, watch mode confirmed "
                           f"{datetime.now():%H:%M:%S} ---\n")
-                print("armed - watch mode confirmed by the board")
+                print("listening - board is reporting on its own"
+                      if LISTEN_ONLY else
+                      "armed - watch mode confirmed by the board")
 
             chunk = ser.read(512)
             if chunk:
@@ -191,7 +226,8 @@ def main():
             # A heartbeat turns "nothing happened" into positive evidence: the
             # board answers with its current state, so an idle lift still
             # leaves a trail and a dead link becomes obvious immediately.
-            if ser is not None and time.time() - last_beat >= HEARTBEAT_S:
+            if (not LISTEN_ONLY and ser is not None
+                    and time.time() - last_beat >= HEARTBEAT_S):
                 ser.write(b"e")
                 ser.flush()
                 beats += 1

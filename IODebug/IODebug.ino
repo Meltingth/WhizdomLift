@@ -43,11 +43,27 @@ struct AnalogCh {
 DigitalPin dig[DIG_COUNT];
 AnalogCh   ana[ANA_COUNT];
 
+const unsigned long HEARTBEAT_MS = 60000;
+unsigned long lastBeat = 0;
 unsigned long lastSnapshot = 0;
 unsigned long lastAnalog   = 0;
 unsigned long startedAt    = 0;
 bool showDigital = true;
-bool showAnalog  = true;
+
+/*
+ * Analog reporting and watch mode both default to the state a capture wants,
+ * so the board is useful the moment it powers up with nobody talking to it.
+ *
+ * That matters for the RS485 link: with the transceiver strapped
+ * transmit-only (DE and RE both tied high) the board cannot receive, so no
+ * command ever arrives to turn watch mode on. Self-arming is what makes that
+ * wiring possible - and it also removes the failure in lesson 6.2, where a
+ * command lost during the bootloader window left a capture silently dead.
+ *
+ * Over USB nothing changes: log_lift.py reads the confirmation back and
+ * toggles again if a mode is already in the state it asked for.
+ */
+bool showAnalog  = false;
 
 /*
  * Input mode for D2..D53.
@@ -284,7 +300,7 @@ void characterisePins() {
  * pins that changed means the PC side can be re-pointed at different pins
  * without reflashing the board.
  */
-bool watchMode = false;
+bool watchMode = true;
 uint64_t lastMask = 0;
 
 uint64_t readMask() {
@@ -326,6 +342,11 @@ void setup() {
   delay(50);          // let the pullups settle before the first read
   resetStats();
   printBanner();
+
+  // Baseline, so a listener that joins later knows the starting state without
+  // having to ask for it.
+  lastMask = readMask();
+  emitState(lastMask, millis());
 }
 
 void loop() {
@@ -371,6 +392,13 @@ void loop() {
     uint64_t m = readMask();
     if (m != lastMask) {
       lastMask = m;
+      emitState(m, now);
+      lastBeat = now;
+    } else if (now - lastBeat >= HEARTBEAT_MS) {
+      // Restate the current state periodically. A quiet lift and a dead link
+      // look identical otherwise, and on a one-way RS485 link the PC cannot
+      // prompt for this the way it does over USB.
+      lastBeat = now;
       emitState(m, now);
     }
   }
