@@ -155,12 +155,12 @@ stash **ถูกสร้างและ stage ไปแล้ว** แต่�
 ถ้าเผลอทำไปแล้ว ล้างด้วย `git reset HEAD -- <file>` แล้ว**ตรวจว่าข้อมูลครบจริง**:
 
 ```
-git show HEAD:capture_lift_2.log | tr -d '' > /tmp/head.txt
-head -n $(wc -l < /tmp/head.txt) capture_lift_2.log | tr -d '' | diff - /tmp/head.txt
+git show HEAD:capture_lift_2.log | tr -d '\r' > /tmp/head.txt
+head -n $(wc -l < /tmp/head.txt) capture_lift_2.log | tr -d '\r' | diff - /tmp/head.txt
 ```
 
 ต้องไม่มีความต่าง — แปลว่าไฟล์เดิมเป็น prefix ของไฟล์ปัจจุบันพอดี คือ append อย่างเดียว ไม่มีอะไรหาย
-**ต้องตัด `` ก่อนเทียบ** ไม่งั้นจะเห็นว่าต่างกันทั้งไฟล์ทั้งที่เหมือนกันหมด เพราะ working file
+**ต้องตัด `\r` ก่อนเทียบ** ไม่งั้นจะเห็นว่าต่างกันทั้งไฟล์ทั้งที่เหมือนกันหมด เพราะ working file
 เป็น CRLF ส่วน blob ใน git เป็น LF
 
 ## เช็คลิสต์ต่อลิฟต์ใหม่
