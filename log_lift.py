@@ -204,6 +204,7 @@ def main():
     ser = None
     rejects = 0           # malformed lines; must stay 0 on a good link
     last_ms = None        # board clock, to notice restarts
+    last_wall = 0.0       # PC clock at that sample, to compare against
     armed_once = False    # has a capture ever actually started on this port?
     first_fails = 0
     HEARTBEAT_S = 60      # ask the board to restate itself this often
@@ -259,18 +260,43 @@ def main():
                         continue
                     ms = parts[1]
 
-                    # Board time running backwards means it restarted - a
-                    # reflash, a power blip, or someone pressing reset. Worth
-                    # marking, because the analysis tools split their timeline
-                    # on that seam and because on the Gateway it distinguishes
-                    # "somebody upgraded this lift" from "the link is failing".
+                    # Spot a restart - a reflash, a power blip, someone
+                    # pressing reset. Worth marking: the analysis tools split
+                    # their timeline on that seam, and on the Gateway it tells
+                    # an upgrade apart from a failing link.
+                    #
+                    # Testing only for the clock going backwards is not enough.
+                    # Two reboots close together both come back near zero, so
+                    # the second one lands on a value no lower than the first:
+                    # this log has 18:57:20 and 18:57:24 both at ms 89, four
+                    # seconds apart, and the backward test saw nothing. A board
+                    # returning on a slightly higher value slips through the
+                    # same way.
+                    #
+                    # Between two ST lines the board's millis() advances by the
+                    # real elapsed time, so it should track the PC clock. When
+                    # far less board time passed than wall time, the board's
+                    # clock was reset. Delivery can bunch lines up, but that
+                    # skews the other way - wall time short, board time long -
+                    # so the test stays one-sided and will not fire on it.
                     ms_i = int(ms)
-                    if last_ms is not None and ms_i < last_ms:
-                        log.write(f"--- board restarted (clock {last_ms} -> "
-                                  f"{ms_i}) {datetime.now():%H:%M:%S} ---"
-                                  + chr(10))
-                        print(chr(10) + "  board restarted at " + datetime.now().strftime("%H:%M:%S"))
-                    last_ms = ms_i
+                    wall_now = time.time()
+                    restarted = reason = None
+                    if last_ms is not None:
+                        wall_ms = (wall_now - last_wall) * 1000
+                        if ms_i < last_ms:
+                            restarted, reason = True, "clock went backwards"
+                        elif wall_ms > 2000 and (ms_i - last_ms) < wall_ms * 0.5:
+                            restarted = True
+                            reason = (f"board advanced {ms_i - last_ms}ms "
+                                      f"while {wall_ms:.0f}ms of real time passed")
+                    if restarted:
+                        log.write(f"--- board restarted ({reason}: {last_ms} -> "
+                                  f"{ms_i}) {datetime.now():%H:%M:%S} ---" + chr(10))
+                        print(chr(10) + "  board restarted at "
+                              + datetime.now().strftime("%H:%M:%S")
+                              + " - " + reason)
+                    last_ms, last_wall = ms_i, wall_now
                     pins = closed_pins(mask)
                     stamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
                     log.write(f"{stamp}  {ms:>10}  {parts[2]}  "
