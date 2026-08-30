@@ -4,12 +4,17 @@ __pycache__/
 
 # Arduino build output. The linker artefacts are regenerable and large, but the
 # plain .hex is kept: it is exactly what is flashed to the boards, so a
-# replacement Mega can be programmed for Lift 2/4/5 with avrdude alone, without
-# installing the whole toolchain first.
+# replacement Mega can be programmed with avrdude alone, without installing the
+# whole toolchain first.
 IODebug/build/*
 !IODebug/build/arduino.avr.mega/
 IODebug/build/arduino.avr.mega/*
 !IODebug/build/arduino.avr.mega/IODebug.ino.hex
+
+# Per-lift firmware: keep the exact image flashed to each board, drop the rest.
+# Lift identity is compiled in, so these are NOT interchangeable between lifts.
+firmware/*/*
+!firmware/*/IODebug.ino.hex
 
 # Runtime control flag for log_lift.py
 STOP_CAPTURE

@@ -16,6 +16,7 @@ Recovers on its own if the USB link drops: it reopens the port, re-arms watch
 mode and carries on appending, noting the gap in the log.
 """
 import os
+import re
 import sys
 import time
 from datetime import datetime
@@ -126,7 +127,7 @@ def _set_mode(ser, cmd, want, opposite, tries=4):
     return False
 
 
-def listen_check(ser, seconds=75.0):
+def listen_check(ser, seconds=75.0, want_lift=None):
     """Confirm the board is already reporting, without sending anything.
 
     Replaces arm() on a one-way link. The point of arm() was never the
@@ -146,10 +147,43 @@ def listen_check(ser, seconds=75.0):
     ser.reset_input_buffer()
     end = time.time() + seconds
     buf = b""
+    seen_st = False
     while time.time() < end:
         buf += ser.read(512)
-        if b"\nST " in buf or buf.startswith(b"ST "):
+        text = buf.decode("utf-8", "replace")
+
+        # Settle identity BEFORE a single line is written. The board repeats it
+        # every 30s, so waiting for it costs half a minute once; not waiting
+        # costs up to half a minute of one lift's data landing in another
+        # lift's log, which is the whole failure this check exists to stop.
+        for line in text.splitlines():
+            if line.startswith("FW ") and want_lift:
+                m = re.search(r"LIFT=(\d+)", line)
+                if m:
+                    got = m.group(1)
+                    if got == "0":
+                        print("  WARNING: firmware built without -DLIFT_ID; "
+                              "it cannot say which lift this is")
+                        return True
+                    if got != want_lift:
+                        raise SystemExit(
+                            "STOPPING before recording anything." + chr(10) +
+                            f"  asked to record Lift {want_lift}, but the "
+                            f"board on this port says it is Lift {got}." +
+                            chr(10) + "  Check which dongle is in which USB "
+                            "socket.")
+                    print(f"  board confirms it is Lift {got}")
+                    return True
+            if line.startswith("ST "):
+                seen_st = True
+
+        # An older board sends no identity at all. Do not lock it out - but do
+        # not pretend it was verified either.
+        if seen_st and time.time() > end - (seconds - 40):
+            print("  note: no lift id from this board (firmware predates "
+                  "1.2.0) - cannot confirm which lift it is")
             return True
+
     raise serial.SerialException(
         f"no ST lines in {seconds:.0f}s - longer than the board's 60s "
         f"heartbeat, so this is a real fault rather than a quiet lift. "
@@ -225,7 +259,7 @@ def main():
             if ser is None:
                 ser = serial.Serial(PORT, BAUD, timeout=0.5)
                 if LISTEN_ONLY:
-                    listen_check(ser)
+                    listen_check(ser, want_lift=LIFT)
                 else:
                     arm(ser)
                 armed_once = True
@@ -249,6 +283,32 @@ def main():
                         log.write(f"--- {line} "
                                   f"{datetime.now():%H:%M:%S} ---" + chr(10))
                         print(f"  board reports: {line}")
+
+                        # The board names the lift it belongs to; check it
+                        # against the one we were told to record. Five CH340
+                        # dongles carry no serial numbers, so Windows names
+                        # their ports by which socket they occupy - swap two
+                        # and one lift's data lands in another's log with
+                        # nothing to show for it. Labelling the stream is not
+                        # enough; the mismatch has to stop the capture.
+                        m = re.search(r"LIFT=(\d+)", line)
+                        if m and LIFT:
+                            got = m.group(1)
+                            if got == "0":
+                                print("  WARNING: firmware was built without "
+                                      "-DLIFT_ID, so it cannot confirm which "
+                                      "lift this is")
+                            elif got != LIFT:
+                                raise SystemExit(
+                                    "STOPPING - wrong board on this port." +
+                                    chr(10) +
+                                    f"  recording as Lift {LIFT}, but the "
+                                    f"board says it is Lift {got}." + chr(10) +
+                                    "  Check which dongle is in which USB "
+                                    "socket before recording anything else.")
+                        elif LIFT:
+                            print("  note: firmware predates lift ids, "
+                                  "cannot verify which board this is")
                         continue
 
                     if not line.startswith("ST "):

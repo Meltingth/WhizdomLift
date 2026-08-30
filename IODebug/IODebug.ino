@@ -24,8 +24,26 @@
  * to open a panel to find out. Bump this on every change that alters what the
  * board reports.
  */
-#define FW_VERSION "1.1.0"
-#define FW_DATE    "2026-08-30"
+#define FW_VERSION "1.2.2"
+#define FW_DATE    "2026-08-31"
+
+/*
+ * Which lift this board belongs to, baked in at build time:
+ *
+ *   arduino-cli compile ... --build-property build.extra_flags=-DLIFT_ID=2
+ *
+ * Five identical streams arrive at the Gateway over CH340 dongles that carry
+ * no USB serial number, so Windows names their ports by which socket they sit
+ * in. Re-plug two and one lift's data silently lands in another's log. The
+ * board therefore has to say who it is.
+ *
+ * The default is 0, which is not a valid lift. A build that forgot the flag
+ * announces LIFT=0 and log_lift.py says so - a wrong answer that shows itself
+ * rather than one that looks right.
+ */
+#ifndef LIFT_ID
+#define LIFT_ID 0
+#endif
 
 const uint8_t  DIG_FIRST = 2;      // D0/D1 are the USB serial pins
 const uint8_t  DIG_LAST  = 53;
@@ -55,7 +73,9 @@ DigitalPin dig[DIG_COUNT];
 AnalogCh   ana[ANA_COUNT];
 
 const unsigned long HEARTBEAT_MS = 60000;
-unsigned long lastBeat = 0;
+const unsigned long IDENT_MS     = 30000;  // announce which lift this is
+unsigned long lastBeat  = 0;
+unsigned long lastIdent = 0;
 unsigned long lastSnapshot = 0;
 unsigned long lastAnalog   = 0;
 unsigned long startedAt    = 0;
@@ -324,6 +344,26 @@ uint64_t readMask() {
   return m;
 }
 
+/*
+ * Announce build and lift, repeated with every heartbeat rather than only at
+ * boot.
+ *
+ * A one-way listener cannot ask what is running, and a logger attached to a
+ * board that is already up would otherwise never see this line at all - so the
+ * check that the right board is on the right port would simply never run,
+ * which is the normal case on the Gateway. Repeating it means any listener
+ * learns the identity within a heartbeat, and a dongle swapped mid-capture is
+ * caught rather than silently relabelling the data.
+ */
+void emitIdentity() {
+  Serial.print(F("FW IODebug "));
+  Serial.print(F(FW_VERSION));
+  Serial.print(' ');
+  Serial.print(F(FW_DATE));
+  Serial.print(F(" LIFT="));
+  Serial.println(LIFT_ID);
+}
+
 void emitState(uint64_t mask, unsigned long t) {
   Serial.print(F("ST "));
   Serial.print(t);
@@ -356,12 +396,8 @@ void setup() {
   resetStats();
   printBanner();
 
-  // Identity first, then the baseline. A one-way RS485 listener cannot ask
-  // what is running, so the board has to volunteer it.
-  Serial.print(F("FW IODebug "));
-  Serial.print(F(FW_VERSION));
-  Serial.print(' ');
-  Serial.println(F(FW_DATE));
+  // Identity first, then the baseline.
+  emitIdentity();
 
   // Baseline, so a listener that joins later knows the starting state without
   // having to ask for it.
@@ -420,6 +456,20 @@ void loop() {
       // prompt for this the way it does over USB.
       lastBeat = now;
       emitState(m, now);
+    }
+
+    /*
+     * Identity runs on its own timer, not off the heartbeat.
+     *
+     * The heartbeat only fires when nothing has changed for a minute, and a
+     * lift in service changes something every second or two - so hanging the
+     * announcement off it meant a busy lift never announced itself at all.
+     * Measured: 73 state changes in 80 seconds and not one identity line.
+     * That is precisely the lift whose identity matters most.
+     */
+    if (now - lastIdent >= IDENT_MS) {
+      lastIdent = now;
+      emitIdentity();
     }
   }
 
