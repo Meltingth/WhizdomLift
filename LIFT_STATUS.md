@@ -7,13 +7,13 @@
 ระหว่างทดสอบเราเรียกตามลำดับที่ต่อบอร์ด (A, B, C…) แต่ชื่อจริงในอาคารคือเลขลิฟต์
 เครื่องมือทุกตัว**รับได้ทั้งสองแบบ** (`lift_health.py 2` เท่ากับ `lift_health.py C`)
 
-| เลขลิฟต์จริง | label ตอนทดสอบ | ไฟล์ข้อมูล |
-|---|---|---|
-| **Lift 1** | B | `capture_lift_1.log` |
-| **Lift 2** | C | `capture_lift_2.log` |
-| **Lift 3** | A | `capture_lift_3.log` ← **ตัวอ้างอิง** |
-| **Lift 4** | D | `capture_lift_4.log` |
-| **Lift 5** | E | `capture_lift_5.log` |
+| เลขลิฟต์จริง | label ตอนทดสอบ | ไฟล์ข้อมูล | firmware |
+|---|---|---|---|
+| **Lift 1** | B | `capture_lift_1.log` | 1.0.x (ยังไม่มีบรรทัด FW) |
+| **Lift 2** | C | `capture_lift_2.log` | **1.1.0** |
+| **Lift 3** | A | `capture_lift_3.log` ← **ตัวอ้างอิง** | 1.0.x (ยังไม่มีบรรทัด FW) |
+| **Lift 4** | D | `capture_lift_4.log` | — |
+| **Lift 5** | E | `capture_lift_5.log` | — |
 
 > Lift 5 = E เป็นการอนุมาน — ผู้ใช้ระบุมา 4 ตัว (1,2,3,4) เหลือเลข 5 ตัวเดียว **ยังไม่ได้ยืนยัน**
 
