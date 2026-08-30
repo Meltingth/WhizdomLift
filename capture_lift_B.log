@@ -992,3 +992,54 @@
 17:09:06.090     5197625  FFFFFFF7F7FFF  D17,D25
 17:10:06.305     5257334  FFFFFFF7F7FFF  D17,D25
 ===== capture stopped 2026-08-08 17:11:00, 990 changes in 89.3 min =====
+# lift: B
+
+===== capture started 2026-08-30 09:44:23  lift=B  port=COM99 =====
+--- link lost 09:44:23: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:44:26: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:44:29: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:44:32: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:44:35: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:44:38: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:44:41: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:44:44: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:44:47: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:44:50: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:44:53: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:44:56: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:44:59: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:02: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:05: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:08: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:11: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:14: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:17: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:20: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:23: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:26: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:29: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:32: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:35: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:38: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:41: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:44: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:47: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:50: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:53: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:56: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:45:59: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:02: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:05: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:08: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:11: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:14: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:17: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:20: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:23: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:26: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:29: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:32: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:35: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:38: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:41: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
+--- link lost 09:46:44: could not open port 'COM99': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2) ---
