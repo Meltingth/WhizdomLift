@@ -4,30 +4,44 @@
     python rs485_check.py COM3 1         # also insist the board says LIFT=1
     python rs485_check.py COM3 1 --secs 90
 
-Four outcomes are worth telling apart, because they send you to four
-different places with the multimeter:
+Five outcomes, because they send you to five different places:
 
-  UP        valid protocol lines arrive. Reports firmware and lift id.
-  SILENT    not one byte. The receive path itself is broken, or the
-            dongle has fail-safe bias holding an undriven bus at idle.
-  UNDRIVEN  bytes arrive but never form a frame, AND the byte rate rises
-            with the baud rate. Nothing is transmitting: the UART is just
-            digitising noise on a floating pair. See below.
-  FRAMING   bytes arrive, never form a frame, but the byte rate stays put
-            when the baud changes. Something IS transmitting and we are
-            misreading it: wrong baud, or inverted A/B.
+  UP           valid protocol lines arrive. Reports firmware and lift id.
+  SILENT       not one byte anywhere.
+  UNDRIVEN     bytes arrive but carry no line structure at any rate.
+               Nothing is transmitting; the UART is digitising noise on a
+               floating pair.
+  FRAMING      bytes arrive WITH line structure, but no line parses. A
+               sender is present and we are misreading it.
+  INCONCLUSIVE too few bytes to tell those two apart. Rerun longer.
 
-The UNDRIVEN vs FRAMING split is the whole point of this tool, and the
-byte-rate test is what separates them. A real UART stream read at the
-wrong baud still arrives at the sender's message rate -- the sender
-decides when bytes exist. Noise has no message rate, so sampling it
-faster simply yields more bytes. Sweep the baud and watch which one the
-byte rate follows.
+Deciding between UNDRIVEN and FRAMING is the whole point, so it is worth
+saying exactly what the test is and why an earlier version of it was
+wrong.
 
-Polarity gets ruled out for free. With A and B swapped the idle line
-reads as a continuous break, so the receiver emits 0x00 at the full line
-rate -- about 11.5 kB/s at 115200. Noise on a floating pair trickles in
-at a few bytes a second. The rate and the 0x00 count tell them apart.
+WHAT DECIDES IT: line structure, measured as the share of bytes that are
+0x0A. Our protocol emits about one newline per 28 bytes, so 3.6%. Uniform
+random bytes yield 1/256, so 0.4%. An order of magnitude apart, and it
+needs no assumption about anyone's timing.
+
+WHAT DOES NOT DECIDE IT: the byte rate rising with the baud rate. The
+reasoning is sound -- a real sender fixes when bytes exist, whereas noise
+has no message rate, so sampling it faster just yields more of it -- and
+the ratio is still reported below as corroboration. But noise arrives in
+bursts, so whether an 8s dwell catches one is luck, and a verdict
+computed by dividing two lucky numbers is luck too. Run against one dead
+link it returned FRAMING, then UNDRIVEN three times with ratios of 57,
+59 and 14, then SILENT: five runs, four verdicts, nothing touched. Two
+faults made it worse than the raw variance -- the low end was taken as
+the first non-zero rate rather than the smallest, so a high first reading
+deflated the ratio directly into the wrong branch, and single-digit byte
+counts were being divided at all. Both are fixed here, but the ratio is
+corroboration now and never the verdict.
+
+Polarity gets ruled out separately and for free. With A and B swapped the
+idle line reads as a continuous break, so the receiver emits 0x00 at the
+full line rate -- about 11.5 kB/s at 115200. Noise on a floating pair
+trickles in at a few bytes a second. Rate and 0x00 count separate them.
 
 Never transmits: RTS and DTR are held low so a direction-controlled
 dongle stays in receive and cannot fight the bus. That matters here --
@@ -43,7 +57,16 @@ from lift_decode import BAUD, lift_id, lift_label
 
 SWEEP_BAUDS = [9600, 38400, 115200, 230400]
 SWEEP_DWELL = 8.0
-NOISE_RATE_RATIO = 4.0     # byte rate must rise this much to call it noise
+
+# Our protocol runs about 1 newline per 28 bytes (3.6%); uniform random
+# bytes give 1/256 (0.4%). Anything at or above this is line-structured.
+LINE_SHARE = 0.02
+
+# Below this many bytes, absence of newlines proves nothing: at 3.6% a
+# real stream would still show none about 0.4% of the time at 150 bytes,
+# and far more often below that. Refuse to rule instead of guessing.
+MIN_EVIDENCE = 150
+
 BREAK_RATE = 2000.0        # bytes/s that says the line is stuck in break
 
 
@@ -84,42 +107,54 @@ def frames(data):
     return good, junk
 
 
-def describe(data, secs):
-    n = len(data)
-    printable = sum(1 for b in data if 32 <= b < 127 or b in (10, 13))
-    return {
-        "bytes": n,
-        "rate": n / secs if secs else 0.0,
-        "printable": 100.0 * printable / n if n else 0.0,
-        "nulls": data.count(0),
-        "newlines": data.count(10),
-    }
+class Evidence:
+    """Bytes and newlines pooled across every dwell, at every baud.
+
+    Pooled deliberately. Each individual dwell is too small to rule on,
+    and the line-structure test does not care which rate the bytes came
+    in at: a sender at any swept rate contributes newlines, noise at
+    every rate contributes almost none.
+    """
+
+    def __init__(self):
+        self.bytes = 0
+        self.newlines = 0
+        self.nulls = 0
+        self.rates = []
+
+    def add(self, data, secs):
+        self.bytes += len(data)
+        self.newlines += data.count(10)
+        self.nulls += data.count(0)
+        self.rates.append(len(data) / secs if secs else 0.0)
+
+    @property
+    def line_share(self):
+        return self.newlines / self.bytes if self.bytes else 0.0
+
+    def rate_ratio(self):
+        """Corroboration only. Smallest non-zero rate against the largest."""
+        nz = [r for r in self.rates if r > 0]
+        if len(nz) < 2:
+            return None
+        return max(nz) / min(nz)
 
 
-def sweep(port):
-    """Does the byte rate follow the sampling rate, or a sender?"""
-    print("  no frame decoded -- sweeping baud to find out why")
-    print("    {:>7} {:>7} {:>8} {:>7}".format("baud", "bytes", "B/s", "frames"))
-    rates = []
+def sweep(port, ev):
+    """Look for line structure at any standard rate, pooling the evidence."""
+    print("  no frame decoded -- sweeping baud")
+    print("    {:>7} {:>7} {:>8} {:>4} {:>7}".format(
+        "baud", "bytes", "B/s", "LF", "frames"))
     for baud in SWEEP_BAUDS:
         data, secs = listen(port, baud, SWEEP_DWELL)
         good, _ = frames(data)
-        rate = len(data) / secs if secs else 0.0
-        rates.append(rate)
-        print("    {:>7} {:>7} {:>8.1f} {:>7}".format(
-            baud, len(data), rate, len(good)))
+        ev.add(data, secs)
+        print("    {:>7} {:>7} {:>8.1f} {:>4} {:>7}".format(
+            baud, len(data), len(data) / secs if secs else 0.0,
+            data.count(10), len(good)))
         if good:
-            return "FOUND", baud, good
-
-    lo = next((r for r in rates if r > 0), 0.0)
-    hi = rates[-1]
-    if lo <= 0:
-        return "FRAMING", None, []
-    ratio = hi / lo
-    baud_ratio = SWEEP_BAUDS[-1] / SWEEP_BAUDS[0]
-    print("    byte rate rose {:.1f}x over a {:.0f}x baud range".format(
-        ratio, baud_ratio))
-    return ("UNDRIVEN" if ratio >= NOISE_RATE_RATIO else "FRAMING"), None, []
+            return good, baud
+    return [], None
 
 
 UNDRIVEN_HELP = """
@@ -145,7 +180,7 @@ FRAMING_HELP = """
     1. Both ends at 115200.
     2. A and B not swapped (see the 0x00 note in this file's docstring).
     3. Termination and cable length -- 115200 over a long unterminated
-       run corrupts bits without changing the byte rate.
+       run corrupts bits without changing the line structure.
 """
 
 SILENT_HELP = """
@@ -182,6 +217,19 @@ def report_up(good, want, secs):
     return 0
 
 
+def report_structure(ev):
+    """Print the line-structure evidence the verdict actually rests on."""
+    print("\n  evidence pooled over every dwell:")
+    print("    {} bytes, {} newlines -> {:.1f}% line structure "
+          "(protocol ~3.6%, noise ~0.4%)".format(
+              ev.bytes, ev.newlines, 100 * ev.line_share))
+    ratio = ev.rate_ratio()
+    if ratio is not None:
+        span = SWEEP_BAUDS[-1] / SWEEP_BAUDS[0]
+        print("    byte rate spread {:.1f}x over a {:.0f}x baud range "
+              "(corroboration only)".format(ratio, span))
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     if not args:
@@ -199,44 +247,59 @@ def main():
     print("{} @ {}, listening {:.0f}s{} -- transmitting nothing".format(
         port, BAUD, secs, who))
 
+    ev = Evidence()
     data, elapsed = listen(port, BAUD, secs)
-    info = describe(data, elapsed)
+    ev.add(data, elapsed)
     good, junk = frames(data)
 
-    print("  {} bytes, {:.1f} B/s, {:.0f}% printable, {} newlines".format(
-        info["bytes"], info["rate"], info["printable"], info["newlines"]))
+    print("  {} bytes, {:.1f} B/s, {} newlines".format(
+        len(data), ev.rates[0], data.count(10)))
     print("  protocol lines {}, unusable lines {}".format(len(good), junk))
 
     if good:
         return report_up(good, want, secs)
 
-    if info["bytes"] == 0:
-        print("\nVERDICT: SILENT -- nothing arrived at all")
-        print(SILENT_HELP)
-        return 1
-
-    if info["rate"] > BREAK_RATE and info["nulls"] > info["bytes"] * 0.5:
+    if ev.rates[0] > BREAK_RATE and ev.nulls > ev.bytes * 0.5:
         print("\nVERDICT: FRAMING -- line is stuck in break, "
               "A and B look swapped")
         print(FRAMING_HELP)
         return 1
 
     print()
-    kind, baud, found = sweep(port)
-    if kind == "FOUND":
+    found, baud = sweep(port, ev)
+    if found:
+        report_structure(ev)
         print("\nVERDICT: FRAMING -- readable at {}, not at {}".format(
             baud, BAUD))
         print("  sample: " + found[0])
         print("  set both ends to the same rate.")
         return 1
-    if kind == "UNDRIVEN":
-        print("\nVERDICT: UNDRIVEN -- the byte rate follows the sampling rate,")
-        print("  so this is noise on a pair nobody is driving. Nothing is")
-        print("  transmitting; there is no signal here to misread.")
-        print(UNDRIVEN_HELP)
+
+    if ev.bytes == 0:
+        print("\nVERDICT: SILENT -- nothing arrived at any rate")
+        print(SILENT_HELP)
         return 1
-    print("\nVERDICT: FRAMING -- a sender is present but we cannot decode it")
-    print(FRAMING_HELP)
+
+    report_structure(ev)
+
+    if ev.line_share >= LINE_SHARE:
+        print("\nVERDICT: FRAMING -- the stream has line structure but no")
+        print("  line parses, so a sender is present and we are misreading it.")
+        print(FRAMING_HELP)
+        return 1
+
+    if ev.bytes < MIN_EVIDENCE:
+        print("\nVERDICT: INCONCLUSIVE -- too few bytes to rule.")
+        print("  No line structure was seen, but {} bytes is not enough for".format(ev.bytes))
+        print("  that absence to mean anything. Rerun with --secs 120 before")
+        print("  sending anyone to check wiring.")
+        return 1
+
+    print("\nVERDICT: UNDRIVEN -- bytes arrive but carry no line structure")
+    print("  at any rate swept, so no ASCII line protocol is present. The")
+    print("  UART is digitising noise on a pair nobody is driving; there is")
+    print("  no signal here to misread.")
+    print(UNDRIVEN_HELP)
     return 1
 
 
