@@ -282,6 +282,17 @@ def main():
     # and the negatives then dragged the per-pin totals below zero - which is
     # what the impossible negative percentages in section 3 were. A sample
     # sitting on a seam has no measurable hold, so give it none.
+    # Invariant worth knowing if you ever change the filtering above.
+    # Consecutive deltas telescope, so the NET (forward + backward) equals
+    # last minus first and cannot change however many intermediate rows a
+    # filter drops. The forward and backward sums SEPARATELY are not
+    # protected: dropping a row next to a sign change moves value between
+    # them while leaving the net alone. [100, 5, 200] gives forward 195 /
+    # backward -95; drop the middle and it is forward 100 / backward 0.
+    # This file demonstrates it - debounce drops the row after two of the
+    # six board resets, and raw-versus-stable differs by 3 ms in each half
+    # with the net exactly equal. So: a net mismatch is a bug, a split
+    # mismatch only means a filter is dropping rows beside a reset.
     hold = []
     for i in range(len(stable)):
         if i + 1 >= len(stable):
