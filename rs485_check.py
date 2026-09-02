@@ -31,6 +31,23 @@ zero lines rejected by the parser. The noise end came off the dead Lift 1
 pair: 307 bytes over five runs, zero newlines, 0.0%. The threshold at 2%
 sits clear of both.
 
+The floor is set by the FW identity line, not by ST. Longest ST is 29 B
+at millis maximum, just before the 49.7-day wrap, giving 3.45%; the
+identity line is 36 B and gives 2.78%. FW dominates on a PARKED lift,
+where nothing changes and the only traffic is the 30s identity beacon
+and the 60s heartbeat -- a 45s window there is one FW line and nothing
+else. So 2.78% is the real worst case, 0.78 points of headroom rather
+than 1.45. A line would have to reach 50 B to fall through 2%, leaving
+FW_VERSION and FW_DATE 14 B of slack between them.
+
+KNOWN LIMITATION: a sender running at a baud outside SWEEP_BAUDS reads
+as UNDRIVEN. The sweep short-circuits the moment any rate parses a
+frame, so a standard rate is caught; a non-standard one is not, and its
+mangled bytes carry no line structure to give it away. Harmless for this
+project -- the firmware is fixed at 115200 -- but the verdict means "no
+line protocol at any rate swept", which is narrower than "nobody is
+transmitting".
+
 WHAT DOES NOT DECIDE IT: the byte rate rising with the baud rate. The
 reasoning is sound -- a real sender fixes when bytes exist, whereas noise
 has no message rate, so sampling it faster just yields more of it -- and
