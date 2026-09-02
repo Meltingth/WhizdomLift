@@ -6,7 +6,12 @@
 
 Five outcomes, because they send you to five different places:
 
-  UP           valid protocol lines arrive. Reports firmware and lift id.
+  UP           valid protocol lines arrive and nearly all of the stream
+               parses. Reports firmware and lift id.
+  UP(DEGRADED) frames parse, but much of the stream does not. The link is
+               carrying data and corrupting it. This is the one outcome
+               that yields plausible wrong data instead of an obvious
+               failure, so it is graded rather than waved through.
   SILENT       not one byte anywhere.
   UNDRIVEN     bytes arrive but carry no line structure at any rate.
                Nothing is transmitting; the UART is digitising noise on a
@@ -47,6 +52,17 @@ mangled bytes carry no line structure to give it away. Harmless for this
 project -- the firmware is fixed at 115200 -- but the verdict means "no
 line protocol at any rate swept", which is narrower than "nobody is
 transmitting".
+
+AND UP MEANS AT LEAST ONE FRAME PARSED, not that the link is healthy.
+An earlier version short-circuited unconditionally on the first good
+frame, so a stream of 1 valid line among 200 corrupted ones reported
+"UP -- the link is delivering" with "malformed state lines: 0"
+underneath it. That count only ever saw lines that already parsed as ST,
+so pure garbage never reached it and it printed a clean figure on a
+nearly dead link -- the reassuring half of a self-contradicting report,
+which is the half people act on. UP is graded on the unparseable share
+now, and that share is stated in the verdict block itself rather than
+only in the line above it.
 
 WHAT DOES NOT DECIDE IT: the byte rate rising with the baud rate. The
 reasoning is sound -- a real sender fixes when bytes exist, whereas noise
@@ -92,6 +108,12 @@ LINE_SHARE = 0.02
 MIN_EVIDENCE = 150
 
 BREAK_RATE = 2000.0        # bytes/s that says the line is stuck in break
+
+# Attaching mid-stream clips the line in flight, and the window can close
+# mid-line too, so up to two unparseable fragments are ordinary. Past that
+# the link is corrupting content rather than just being joined late: Lift 2
+# ran 60 hours and 55,516 lines with zero rejected.
+ATTACH_JUNK = 2
 
 
 def listen(port, baud, secs):
@@ -207,6 +229,19 @@ FRAMING_HELP = """
        run corrupts bits without changing the line structure.
 """
 
+DEGRADED_HELP = """
+  Frames are getting through, so the board, its power and the A/B path
+  are all fine. The line is corrupting content, which is worse than a
+  dead link: it yields plausible wrong data rather than an obvious
+  failure, and log_lift.py counts the bad lines as rejects but keeps the
+  good ones. Do not start a capture on this. Check:
+    1. Termination -- 120R at each far end of the pair, and only there.
+    2. Cable length and routing at 115200. The shaft runs past VFDs
+       switching high current; a long unterminated run picks that up.
+    3. GND common between the module and the dongle. Without it the
+       differential rides on whatever the two grounds differ by.
+"""
+
 SILENT_HELP = """
   Not one byte arrived, which is different from noise. Either the
   receive path is broken (dongle, cable, A/B open) or this dongle has
@@ -216,10 +251,21 @@ SILENT_HELP = """
 """
 
 
-def report_up(good, want, secs):
+def report_up(good, junk, want, secs):
     fw = [g for g in good if g.startswith("FW ")]
     st = [g for g in good if g.startswith("ST ")]
-    print("\nVERDICT: UP -- the link is delivering")
+    total = len(good) + junk
+    share = junk / total if total else 0.0
+    degraded = junk > ATTACH_JUNK
+
+    if degraded:
+        print("\nVERDICT: UP (DEGRADED) -- frames parse, but most of the "
+              "stream does not")
+    else:
+        print("\nVERDICT: UP -- the link is delivering")
+    print("  parsed {} of {} lines, {} unparseable ({:.1f}%)".format(
+        len(good), total, junk, 100 * share))
+
     if fw:
         print("  identity: " + fw[-1])
         if want:
@@ -235,9 +281,15 @@ def report_up(good, want, secs):
               "(beacon is every 30s, window was {:.0f}s)".format(secs))
     if st:
         print("  {} state lines, latest: {}".format(len(st), st[-1]))
+        # Only counts lines that already parsed as ST. It says nothing
+        # about the stream as a whole, which is what the unparseable
+        # share above is for -- keep the labels apart.
         bad = [s for s in st
                if len(s.split()) != 3 or len(s.split()[2]) != 13]
-        print("  malformed state lines: {}".format(len(bad)))
+        print("  of those, {} carried a malformed mask".format(len(bad)))
+    if degraded:
+        print(DEGRADED_HELP)
+        return 1
     return 0
 
 
@@ -281,7 +333,7 @@ def main():
     print("  protocol lines {}, unusable lines {}".format(len(good), junk))
 
     if good:
-        return report_up(good, want, secs)
+        return report_up(good, junk, want, secs)
 
     if ev.rates[0] > BREAK_RATE and ev.nulls > ev.bytes * 0.5:
         print("\nVERDICT: FRAMING -- line is stuck in break, "
