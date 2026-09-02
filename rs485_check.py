@@ -24,6 +24,13 @@ WHAT DECIDES IT: line structure, measured as the share of bytes that are
 random bytes yield 1/256, so 0.4%. An order of magnitude apart, and it
 needs no assumption about anyone's timing.
 
+Both ends of that gap are measured, not assumed. Replaying 1.8 MB of
+traffic three real boards actually produced -- 63,497 frames across
+capture_lift_1.log and capture_lift_2.log -- gives 3.9% and 3.5%, with
+zero lines rejected by the parser. The noise end came off the dead Lift 1
+pair: 307 bytes over five runs, zero newlines, 0.0%. The threshold at 2%
+sits clear of both.
+
 WHAT DOES NOT DECIDE IT: the byte rate rising with the baud rate. The
 reasoning is sound -- a real sender fixes when bytes exist, whereas noise
 has no message rate, so sampling it faster just yields more of it -- and
