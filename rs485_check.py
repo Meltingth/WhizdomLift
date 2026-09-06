@@ -138,8 +138,17 @@ def listen(port, baud, secs):
 
 
 def frames(data):
-    """Split into lines and keep the ones that look like our protocol."""
-    good, junk = [], 0
+    """Split into lines, keeping the ones that look like our protocol.
+
+    Junk is split at the first good frame, and only the part after it is
+    evidence about link quality. Bytes before it can mean the listener
+    attached mid-line, or that the board had just reset -- measured at 9
+    unparseable lines on a Mega the moment it was powered over USB, which
+    was enough to report a perfectly clean link as DEGRADED. Junk after
+    the first frame is the link corrupting content it had already been
+    delivering, which is the thing worth grading.
+    """
+    good, lead, trail = [], 0, 0
     for raw in data.split(b"\n"):
         raw = raw.strip(b"\r")
         if not raw:
@@ -149,8 +158,25 @@ def frames(data):
             if txt.startswith("ST ") or txt.startswith("FW "):
                 good.append(txt)
                 continue
-        junk += 1
-    return good, junk
+        if good:
+            trail += 1
+        else:
+            lead += 1
+    return good, lead, trail
+
+
+def first_uptime(good):
+    """Board uptime on the earliest state line, seconds, or None.
+
+    A small value is positive evidence that leading junk was a reset
+    rather than a bad link -- the board says so itself.
+    """
+    for g in good:
+        if g.startswith("ST "):
+            p = g.split()
+            if len(p) == 3 and p[1].isdigit():
+                return int(p[1]) / 1000.0
+    return None
 
 
 class Evidence:
@@ -193,7 +219,7 @@ def sweep(port, ev):
         "baud", "bytes", "B/s", "LF", "frames"))
     for baud in SWEEP_BAUDS:
         data, secs = listen(port, baud, SWEEP_DWELL)
-        good, _ = frames(data)
+        good, _, _ = frames(data)
         ev.add(data, secs)
         print("    {:>7} {:>7} {:>8.1f} {:>4} {:>7}".format(
             baud, len(data), len(data) / secs if secs else 0.0,
@@ -251,20 +277,29 @@ SILENT_HELP = """
 """
 
 
-def report_up(good, junk, want, secs):
+def report_up(good, lead, trail, want, secs):
     fw = [g for g in good if g.startswith("FW ")]
     st = [g for g in good if g.startswith("ST ")]
-    total = len(good) + junk
-    share = junk / total if total else 0.0
-    degraded = junk > ATTACH_JUNK
+    total = len(good) + trail
+    share = trail / total if total else 0.0
+    degraded = trail > ATTACH_JUNK
 
     if degraded:
-        print("\nVERDICT: UP (DEGRADED) -- frames parse, but most of the "
-              "stream does not")
+        print("\nVERDICT: UP (DEGRADED) -- frames parse, but the link is "
+              "corrupting the stream")
     else:
         print("\nVERDICT: UP -- the link is delivering")
-    print("  parsed {} of {} lines, {} unparseable ({:.1f}%)".format(
-        len(good), total, junk, 100 * share))
+    print("  parsed {} of {} lines, {} unparseable after the first frame "
+          "({:.1f}%)".format(len(good), total, trail, 100 * share))
+    if lead:
+        up = first_uptime(good)
+        note = ""
+        if up is not None and up < 5.0:
+            note = " -- board was {:.1f}s old, so this is its startup".format(up)
+        elif up is not None:
+            note = " -- board already {:.0f}s up, so more likely a clipped attach".format(up)
+        print("  {} unparseable line(s) before the first frame, not "
+              "graded{}".format(lead, note))
 
     if fw:
         print("  identity: " + fw[-1])
@@ -326,14 +361,15 @@ def main():
     ev = Evidence()
     data, elapsed = listen(port, BAUD, secs)
     ev.add(data, elapsed)
-    good, junk = frames(data)
+    good, lead, trail = frames(data)
 
     print("  {} bytes, {:.1f} B/s, {} newlines".format(
         len(data), ev.rates[0], data.count(10)))
-    print("  protocol lines {}, unusable lines {}".format(len(good), junk))
+    print("  protocol lines {}, unusable {} before / {} after the first"
+          " frame".format(len(good), lead, trail))
 
     if good:
-        return report_up(good, junk, want, secs)
+        return report_up(good, lead, trail, want, secs)
 
     if ev.rates[0] > BREAK_RATE and ev.nulls > ev.bytes * 0.5:
         print("\nVERDICT: FRAMING -- line is stuck in break, "
