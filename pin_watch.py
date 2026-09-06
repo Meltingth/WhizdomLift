@@ -52,8 +52,15 @@ def judge(rows, pin):
         widths.sort()
         p99 = widths[min(len(widths) - 1, int(0.99 * len(widths)))]
 
+    # A parked car exercises nothing. VS2 reads HIGH at rest even when it is
+    # perfectly healthy, so with no floor movement there is no evidence either
+    # way - saying DEAD here would fail a good line for standing still.
+    if moves == 0:
+        return None, (f"{len(rows):4d} samples | LOW {low:4d} | car has not "
+                      f"moved - cannot judge this line yet")
+
     if low == 0:
-        v = "DEAD (open)     - never closes"
+        v = "DEAD (open)     - never closes while the car moves"
     elif toggles == 0:
         v = "STUCK           - closed, but never moves"
     elif p99 < HOLD_OK_MS:
