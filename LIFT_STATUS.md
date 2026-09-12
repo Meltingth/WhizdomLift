@@ -13,7 +13,7 @@
 | **Lift 2** | C | `capture_lift_2.log` | **1.2.2 LIFT=2** ✅ | **Gateway** — หาพอร์ตจาก beacon `LIFT=2` อย่ายึดเลข COM |
 | **Lift 3** | A | `capture_lift_3.log` ← **ตัวอ้างอิง** | **1.2.2 LIFT=3** ✅ | **Gateway — RS485 ขึ้นแล้ว** 6 ก.ย. (beacon `LIFT=3`) |
 | **Lift 4** | D | `capture_lift_4.log` | — | ⛔ ปิดใช้งาน |
-| **Lift 5** | E | `capture_lift_5.log` | **1.2.2 LIFT=5** ✅ | — (USB หน้าตู้, กำลังทดสอบ) |
+| **Lift 5** | E | `capture_lift_5.log` | **1.2.2 LIFT=5** ✅ | **เครื่องหน้าตู้ COM14 (RS485)** — ✅ blind test ผ่าน 12 ก.ย. 18:30 |
 
 > firmware ในคอลัมน์นี้คือสิ่งที่**อ่านกลับมาจากบอร์ดจริง** ไม่ใช่สิ่งที่คิดว่าแฟลชไป —
 > ยืนยันจากบรรทัด `FW IODebug <ver> <date> LIFT=<n>` ที่บอร์ดประกาศเองทุก 30 วินาที
