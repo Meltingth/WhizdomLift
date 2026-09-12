@@ -25,6 +25,9 @@ import subprocess
 import sys
 from datetime import datetime
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lift_decode import lift_id           # A-E and 1-5 name the same lifts
+
 DEFAULT_LIFTS = [1, 2, 3, 5]
 
 # A live logger writes the board's identity beacon every 30 s even when the
@@ -37,7 +40,11 @@ HEAD = re.compile(r"^===== capture started (\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)"
                   r"\s+lift=(\S+)\s+port=(\S+)")
 MARK = re.compile(r"^--- (.*) ---$")
 BEACON = re.compile(r"FW IODebug (\S+) (\S+) LIFT=(\d+)")
-PROC = re.compile(r"log_lift\.py\s+(COM\d+)\s+(\S+)", re.I)
+# The first argument is usually a COM number but may be the literal "auto"
+# (--follow resolves it by identity), and the lift may be given as a letter.
+# Matching only COM\d+ here made a demonstrably running capture report as
+# STOPPED - the report contradicting the log it was reading from.
+PROC = re.compile(r"log_lift\.py\s+(\S+)\s+(\S+)", re.I)
 
 
 def running():
@@ -57,8 +64,12 @@ def running():
         pid, _, cmd = line.partition("\t")
         m = PROC.search(cmd)
         if m and pid.strip().isdigit():
-            found[m.group(2).lower()] = {"pid": int(pid),
-                                         "port": m.group(1).upper()}
+            port = m.group(1).upper()
+            found[lift_id(m.group(2))] = {
+                "pid": int(pid),
+                # None means "started with auto" - the command line does not
+                # say which port it landed on; the log does.
+                "port": port if re.fullmatch(r"COM\d+", port) else None}
     return found
 
 
@@ -79,12 +90,18 @@ def read_session(path):
          "port": head.group(3).upper() if head else "?",
          "rows": 0, "last_clock": None, "last_ms": None,
          "restarts": [], "link_lost": [], "stopped": False,
-         "fw": None, "beacon_lifts": set()}
+         "fw": None, "beacon_lifts": set(),
+         # --follow can legitimately move a capture to another COM number.
+         # Without reading these back, this tool would call a logger that
+         # correctly followed its board DEGRADED for being on the "wrong" port.
+         "rebinds": [], "wrong_board": [], "last_search": None,
+         "last_marker": None}
     for l in lines[i + 1:]:
         d = DATA.match(l)
         if d:
             s["rows"] += 1
             s["last_clock"], s["last_ms"] = d.group(1), int(d.group(2))
+            s["last_marker"] = "data"
             continue
         if l.startswith("===== capture stopped"):
             s["stopped"] = True
@@ -93,17 +110,36 @@ def read_session(path):
         if not m:
             continue
         body = m.group(1)
+        # Every marker the logger writes ends in a wall-clock stamp. All of
+        # them count as signs of life -- a capture that is out searching for
+        # its board writes no data lines for minutes, and reading only data
+        # lines would call that frozen.
+        tail = body.split()[-1] if body.split() else ""
+        if re.fullmatch(r"\d\d:\d\d:\d\d", tail):
+            s["last_clock"] = tail
         b = BEACON.search(body)
         if b:
             s["fw"] = b.group(1) + " " + b.group(2)
             s["beacon_lifts"].add(int(b.group(3)))
-            tail = body.split()[-1]
-            if re.fullmatch(r"\d\d:\d\d:\d\d", tail):
-                s["last_clock"] = tail
+            s["last_marker"] = "beacon"
         elif body.startswith("board restarted"):
             s["restarts"].append(body)
+            s["last_marker"] = "restart"
         elif body.startswith("link lost"):
             s["link_lost"].append(body)
+            s["last_marker"] = "link lost"
+        elif body.startswith("rebound to "):
+            s["rebinds"].append(body)
+            s["last_marker"] = "rebound"
+            moved = re.match(r"rebound to (COM\d+)", body)
+            if moved:
+                s["port"] = moved.group(1)   # where it is now, not where it began
+        elif body.startswith("wrong board on "):
+            s["wrong_board"].append(body)
+            s["last_marker"] = "wrong board"
+        elif body.startswith("searching for Lift"):
+            s["last_search"] = body
+            s["last_marker"] = "search"
     return s
 
 
@@ -134,7 +170,7 @@ def secs_ago(clock):
 
 def check(lift, procs):
     path = "capture_lift_%d.log" % lift
-    proc = procs.get(str(lift))
+    proc = procs.get(lift_id(str(lift)))
     s = read_session(path)
     if s is None:
         return "NO LOG", ["%s has no capture session in it" % path]
@@ -170,11 +206,16 @@ def check(lift, procs):
         notes.append("last restart: " + s["restarts"][-1])
     if s["link_lost"]:
         notes.append("last link loss: " + s["link_lost"][-1])
+    if s["rebinds"]:
+        notes.append("followed its board %d time(s), last: %s"
+                     % (len(s["rebinds"]), s["rebinds"][-1]))
+    if s["wrong_board"]:
+        notes.append("saw a foreign board: " + s["wrong_board"][-1])
 
     if proc is None:
         return "STOPPED", notes + ["no log_lift.py process is running for this lift"]
-    notes.insert(0, "pid %d  %s" % (proc["pid"], proc["port"]))
-    if proc["port"] != s["port"]:
+    notes.insert(0, "pid %d  %s" % (proc["pid"], proc["port"] or "auto"))
+    if proc["port"] is not None and proc["port"] != s["port"]:
         notes.append("!! process is on %s but the session header says %s -- the "
                      "log was reopened elsewhere" % (proc["port"], s["port"]))
         bad = True
@@ -183,6 +224,11 @@ def check(lift, procs):
                      "process is running -- it is writing somewhere else")
         bad = True
     if age is not None and age > STALE_SECS:
+        if s["last_marker"] == "search":
+            # --follow holds each port for ~35s while it listens for an
+            # identity, so a capture mid-search is working, not wedged.
+            return "SEARCHING", notes + ["looking for its board by identity: "
+                                         + (s["last_search"] or "")]
         return "STALE", notes + ["process alive but nothing written for %.0fs "
                                  "(a live board beacons every 30s)" % age]
     return ("DEGRADED" if bad else "CAPTURING"), notes

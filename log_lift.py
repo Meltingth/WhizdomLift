@@ -16,6 +16,7 @@ Recovers on its own if the USB link drops: it reopens the port, re-arms watch
 mode and carries on appending, noting the gap in the log.
 """
 import os
+import random
 import re
 import sys
 import time
@@ -42,6 +43,11 @@ from lift_decode import lift_id, lift_label     # single source of lift naming
 # --listen: never transmit, just record. Required on a one-way RS485 link
 # where the transceiver is strapped transmit-only and the board cannot hear us.
 LISTEN_ONLY = "--listen" in sys.argv
+
+# --follow: if the port goes away, find this lift again by the identity its
+# board announces, whatever COM number Windows has handed it this time. See
+# reacquire() for why that is safe and where it deliberately refuses to guess.
+FOLLOW = "--follow" in sys.argv
 _args = [a for a in sys.argv[1:] if not a.startswith("--")]
 
 PORT = _args[0].upper() if _args else "COM3"
@@ -127,6 +133,141 @@ def _set_mode(ser, cmd, want, opposite, tries=4):
     return False
 
 
+class WrongBoard(Exception):
+    """The board on this port says it belongs to a different lift."""
+
+    def __init__(self, got):
+        super().__init__("board says it is Lift %s" % got)
+        self.got = got
+
+
+IDENT_S = 35.0          # must exceed the board's 30s identity beacon
+
+
+def open_quiet(port, baud=BAUD, timeout=0.5):
+    """Open a port with DTR and RTS already low.
+
+    Lesson 6.17 measured a board resetting on the first open *despite*
+    dtr=False, because pyserial can only lower those lines after the driver
+    has opened the handle and asserted them. Setting them on an unopened
+    Serial and letting open() apply them is the one chance to avoid that. On
+    the RS485 dongles it is moot - they have no reset line to the Arduino -
+    but a search must not be the thing that reboots a board it is only
+    looking at.
+
+    UNVERIFIED on a directly-attached Arduino: there is no USB-attached board
+    on this machine to test it against, so treat it as a precaution rather
+    than a guarantee, and keep --follow for RS485 dongles.
+    """
+    ser = serial.Serial()
+    ser.port = port
+    ser.baudrate = baud
+    ser.timeout = timeout
+    ser.dtr = False
+    ser.rts = False
+    ser.open()
+    return ser
+
+
+def identify(port, secs=IDENT_S):
+    """Listen to one port and ask what it is. Transmits nothing.
+
+    Returns (state, lift), state being one of:
+      identified  the board announced LIFT=<lift>
+      claimed     another capture holds this port - never touched
+      gone        the port vanished between listing it and opening it
+      quiet       traffic, but no identity within the beacon interval
+      silent      not one byte
+      error       anything else, described in the second value
+
+    Windows opens a COM port exclusively, so a port a logger is recording on
+    refuses us with PermissionError while a port that has gone away refuses
+    with FileNotFoundError. Those two being distinguishable is what makes a
+    search safe to run beside four live captures: it can never read a held
+    port's identity, and it can never steal one either.
+    """
+    try:
+        ser = open_quiet(port)
+    except (serial.SerialException, OSError) as e:
+        txt = str(e)
+        if "PermissionError" in txt or "Access is denied" in txt:
+            return "claimed", None
+        if "FileNotFoundError" in txt or "cannot find" in txt:
+            return "gone", None
+        return "error", txt[:80]
+    try:
+        end = time.time() + secs
+        buf = b""
+        while time.time() < end:
+            buf += ser.read(512)
+            for line in buf.decode("utf-8", "replace").splitlines():
+                if line.startswith("FW "):
+                    m = re.search(r"LIFT=(\d+)", line)
+                    if m and m.group(1) != "0":
+                        return "identified", m.group(1)
+        return ("quiet" if buf else "silent"), None
+    finally:
+        try:
+            ser.close()
+        except Exception:
+            pass
+
+
+def candidate_ports():
+    return [p.device for p in list_ports.comports()
+            if "CH340" in (p.description or "") or "USB" in (p.description or "")]
+
+
+def reacquire(lift, log=None, probe=identify):
+    """Find the port this lift is on now. Returns a port, or None to retry.
+
+    Why this is not the silent self-repair CLAUDE.md 9.6 warns against: that
+    warning is about a logger *guessing* a replacement after finding a foreign
+    board, where a deliberate re-plug and a dead dongle look identical. This
+    guesses nothing. It attaches only to a port whose board has just announced
+    this exact lift id - the same proof listen_check demands before writing a
+    first line. The identity is the key; the COM number was only ever a handle.
+
+    Three refusals keep it honest:
+      * a port announcing a different lift is passed over, never adopted;
+      * a port another logger holds is skipped, so two captures cannot fight;
+      * two ports announcing the SAME lift stop the process outright. That is
+        two boards flashed with one id - a build mistake - and taking either
+        would put one lift's data in another lift's log, the exact corruption
+        every identity check here exists to prevent.
+
+    Ports are probed in random order so four loggers searching at once do not
+    lock-step onto the same one, and each probe releases immediately, so a
+    port that reads "claimed" this pass is simply retried on the next.
+    """
+    ports = candidate_ports()
+    random.shuffle(ports)
+    seen, matches = {}, []
+    for port in ports:
+        state, val = probe(port)
+        seen[port] = val if state == "identified" else state
+        if state == "identified" and val == lift:
+            matches.append(port)
+
+    summary = " ".join("%s=%s" % kv for kv in sorted(seen.items())) or "no ports"
+    if log is not None:
+        log.write("--- searching for Lift %s: %s %s ---%s"
+                  % (lift, summary, datetime.now().strftime("%H:%M:%S"),
+                     chr(10)))
+
+    if len(matches) > 1:
+        raise SystemExit(
+            "\nSTOPPING - %d ports all claim to be Lift %s: %s\n"
+            "  Two boards carry the same -DLIFT_ID. Taking either one would "
+            "put this lift's data somewhere it does not belong.\n"
+            "  Reflash them with distinct ids, then restart this capture."
+            % (len(matches), lift, ", ".join(matches)))
+    if matches:
+        return matches[0]
+    print("\n  Lift %s is not on any port yet (%s)" % (lift, summary))
+    return None
+
+
 def listen_check(ser, seconds=75.0, want_lift=None):
     """Confirm the board is already reporting, without sending anything.
 
@@ -166,12 +307,10 @@ def listen_check(ser, seconds=75.0, want_lift=None):
                               "it cannot say which lift this is")
                         return True
                     if got != want_lift:
-                        raise SystemExit(
-                            "STOPPING before recording anything." + chr(10) +
-                            f"  asked to record Lift {want_lift}, but the "
-                            f"board on this port says it is Lift {got}." +
-                            chr(10) + "  Check which dongle is in which USB "
-                            "socket.")
+                        # Raised, not exited: without --follow main() turns
+                        # this straight back into the same fatal message, and
+                        # with it the search decides what to do instead.
+                        raise WrongBoard(got)
                     print(f"  board confirms it is Lift {got}")
                     return True
             if line.startswith("ST "):
@@ -217,8 +356,15 @@ def arm(ser):
 
 
 def main():
-    if os.path.exists(STOP):
+    global PORT                      # --follow may move this capture's port
+    # Every logger shares this file, so starting five at once has five of them
+    # racing between the exists() and the remove(). The loser used to die at
+    # startup with FileNotFoundError - and a capture that never starts is the
+    # failure this whole file is built to avoid.
+    try:
         os.remove(STOP)
+    except FileNotFoundError:
+        pass
 
     check_owner()
 
@@ -226,11 +372,34 @@ def main():
     # meant for a USB link that drops mid-capture; letting a typo'd port fall
     # into it produces a process that looks alive for hours and records nothing.
     available = [p.device for p in list_ports.comports()]
-    if PORT not in available:
+    if PORT == "AUTO" or (FOLLOW and PORT not in available):
+        # Under --follow the COM number is a handle, not an identity, so a
+        # missing one is not a reason to refuse to start: ask the boards who
+        # they are instead. This is also what survives a PC reboot, where
+        # every number may come back different.
+        if not FOLLOW:
+            raise SystemExit(
+                "port 'auto' only works with --follow, which is the part that "
+                "knows how to find a lift by the identity it announces.")
+        if not LIFT:
+            raise SystemExit("--follow needs a lift number to search for.")
+        print(f"searching for Lift {LIFT} by identity "
+              f"(~{IDENT_S:.0f}s per port, transmitting nothing)")
+        found = None
+        while found is None:
+            if os.path.exists(STOP):
+                raise SystemExit("STOP_CAPTURE exists - not starting.")
+            found = reacquire(LIFT)
+            if found is None:
+                time.sleep(3)
+        print(f"  Lift {LIFT} is on {found}")
+        PORT = found
+    elif PORT not in available:
         raise SystemExit(
             f"{PORT} is not present.\n"
             f"  ports available now: {', '.join(available) if available else '(none)'}\n"
-            f"  check the USB cable, then rerun with the right port.")
+            f"  check the USB cable, then rerun with the right port,\n"
+            f"  or add --follow to let this capture find Lift {LIFT} itself.")
     log = open(LOG, "a", encoding="utf-8", buffering=1)   # line buffered
     if OWNER:
         log.write(f"{OWNER}\n")
@@ -252,12 +421,31 @@ def main():
     last_wall = 0.0       # PC clock at that sample, to compare against
     armed_once = False    # has a capture ever actually started on this port?
     first_fails = 0
+    force_scan = False    # a foreign board answered here; do not retry this port
     HEARTBEAT_S = 60      # ask the board to restate itself this often
 
     while not os.path.exists(STOP):
         try:
+            # Windows numbers CH340 ports by which socket they sit in, so a
+            # dongle put back in a different socket comes up under a different
+            # name. Without this, the loop below retries a number that will
+            # never return and records nothing, looking healthy the whole time.
+            if ser is None and FOLLOW and (armed_once or force_scan):
+                here = [p.device for p in list_ports.comports()]
+                if force_scan or PORT not in here:
+                    found = reacquire(LIFT, log)
+                    if found is None:
+                        time.sleep(3)
+                        continue
+                    if found != PORT:
+                        log.write(f"--- rebound to {found} (was {PORT}) "
+                                  f"{datetime.now():%H:%M:%S} ---" + chr(10))
+                        print(f"\n  Lift {LIFT} moved: {PORT} -> {found}")
+                        PORT = found
+                    force_scan = False
+
             if ser is None:
-                ser = serial.Serial(PORT, BAUD, timeout=0.5)
+                ser = open_quiet(PORT)
                 if LISTEN_ONLY:
                     listen_check(ser, want_lift=LIFT)
                 else:
@@ -299,13 +487,7 @@ def main():
                                       "-DLIFT_ID, so it cannot confirm which "
                                       "lift this is")
                             elif got != LIFT:
-                                raise SystemExit(
-                                    "STOPPING - wrong board on this port." +
-                                    chr(10) +
-                                    f"  recording as Lift {LIFT}, but the "
-                                    f"board says it is Lift {got}." + chr(10) +
-                                    "  Check which dongle is in which USB "
-                                    "socket before recording anything else.")
+                                raise WrongBoard(got)
                         elif LIFT:
                             print("  note: firmware predates lift ids, "
                                   "cannot verify which board this is")
@@ -422,6 +604,30 @@ def main():
                 print(f"\r  {mins:6.1f} min   {changes:6d} lines   "
                       f"{beats} beats   {rejects} rejected   ", end="", flush=True)
                 last_report = time.time()
+
+        except WrongBoard as e:
+            # Somebody moved the plugs. Which board is on which port changed;
+            # which lift this capture belongs to did not.
+            try:
+                if ser:
+                    ser.close()
+            except Exception:
+                pass
+            ser = None
+            log.write(f"--- wrong board on {PORT}: it says Lift {e.got}, this "
+                      f"capture is Lift {LIFT} {datetime.now():%H:%M:%S} ---"
+                      + chr(10))
+            if not FOLLOW:
+                raise SystemExit(
+                    "STOPPING - wrong board on this port." + chr(10) +
+                    f"  recording as Lift {LIFT}, but the board on {PORT} "
+                    f"says it is Lift {e.got}." + chr(10) +
+                    "  Check which dongle is in which USB socket, or rerun "
+                    "with --follow to let this capture find its own board.")
+            print(f"\n  {PORT} now carries Lift {e.got} - "
+                  f"going to look for Lift {LIFT}")
+            force_scan = True
+            time.sleep(1)
 
         except (serial.SerialException, OSError, ValueError) as e:
             log.write(f"--- link lost {datetime.now():%H:%M:%S}: {e} ---\n")
