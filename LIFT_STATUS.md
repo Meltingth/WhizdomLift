@@ -229,6 +229,21 @@ Start-ScheduledTask -TaskName 'WhizdomLift captures'
 🔴 **ข้อจำกัด**: `AtLogOn` ทำงานตอนมีคน logon — เครื่องรีบูตแล้วไม่มีใคร logon จะไม่มีอะไรสตาร์ต
 ถ้าต้องรันแบบ headless จริง ๆ ต้องใช้ task ที่เก็บ credential ซึ่งต้องสิทธิ์ admin
 
+#### ✅ ติดตั้งและยืนยันแล้วบนเครื่องนี้ — 12 ก.ย. 2026 22:48
+
+อ่านกลับจาก `Get-ScheduledTask` ไม่ได้เชื่อข้อความที่สคริปต์พิมพ์:
+
+| | |
+|---|---|
+| triggers | 2 — `MSFT_TaskLogonTrigger` + `MSFT_TaskTimeTrigger` |
+| repetition | **`PT15M`** · `duration` ว่าง = ทำซ้ำไม่มีวันสิ้นสุด |
+| action | `powershell.exe … -File "D:\WhizdomLift\scripts\start_captures.ps1" -Lifts 1,2,3,5` |
+| รอบแรก | 22:48:48 → `result = 0` (ทุกลิฟต์รันอยู่แล้ว จึงไม่สตาร์ตซ้ำ) |
+| **รอบที่สอง** | **23:03:03 → `result = 0` · missed runs 0** ⇒ repetition ยิงจริง ไม่ใช่แค่ตั้งค่าไว้ |
+
+⏳ **ยังไม่ได้ยืนยัน: `AtLogOn`** — ต้อง logoff/logon หรือรีบูตจริงถึงจะเห็น
+ตรวจได้ด้วย `Get-ScheduledTaskInfo -TaskName 'WhizdomLift captures'` หลังรีบูต ดูว่า `LastRunTime` ขยับ
+
 `CAPTURING` ครบทั้ง 4 ตัว = ปกติ · `STALE` = โปรเซสอยู่แต่ไฟล์ไม่โต · `STOPPED` = ตายแล้ว
 · `DEGRADED` = บอร์ดผิดตัว / พอร์ตไม่ตรงหัวไฟล์ / ไม่มี beacon
 
