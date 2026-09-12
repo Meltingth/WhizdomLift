@@ -241,8 +241,44 @@ Start-ScheduledTask -TaskName 'WhizdomLift captures'
 | รอบแรก | 22:48:48 → `result = 0` (ทุกลิฟต์รันอยู่แล้ว จึงไม่สตาร์ตซ้ำ) |
 | **รอบที่สอง** | **23:03:03 → `result = 0` · missed runs 0** ⇒ repetition ยิงจริง ไม่ใช่แค่ตั้งค่าไว้ |
 
-⏳ **ยังไม่ได้ยืนยัน: `AtLogOn`** — ต้อง logoff/logon หรือรีบูตจริงถึงจะเห็น
-ตรวจได้ด้วย `Get-ScheduledTaskInfo -TaskName 'WhizdomLift captures'` หลังรีบูต ดูว่า `LastRunTime` ขยับ
+#### 🔄 ทดสอบ `AtLogOn` ด้วยการรีบูตจริง — 13 ก.ย. 2026 00:20
+
+หยุด capture ทั้งสี่ตัวอย่างสะอาดแล้วรีบูตเครื่อง **ผู้ใช้ต้อง logon หลังรีบูตถึงจะเห็นผล**
+(task เป็น user-level `LogonType=Interactive` — ไม่ logon = ไม่มีอะไรทำงาน ทั้ง logon trigger
+และ watchdog 15 นาที)
+
+**baseline ก่อนรีบูต** — ใช้เทียบหลังเครื่องกลับมา:
+
+| | |
+|---|---|
+| เวลา | 2026-09-13 00:19:30 · uptime เครื่อง 6 วัน 7 ชม. · ไม่มี pending update |
+| task | lastRun **00:18:18** result 0 · nextRun **00:33:33** · missed 0 |
+| หยุด capture | 00:19:56 ทั้งสี่ตัว `0 rejected` (สะอาด ไม่ใช่ crash) |
+| `board_ms` สุดท้าย | lift 1 = **30,924,406** · lift 2 = **577,938,829** · lift 3 = **537,803,730** · lift 5 = **21,246,384** |
+
+**สิ่งที่ต้องเห็นถ้า `AtLogOn` ทำงาน** (เรียงตามความน่าเชื่อถือ):
+
+1. 🥇 **`capture_lift_*.log` มีบรรทัด `===== capture started` ใหม่ ภายใน ~1 นาทีหลัง logon**
+   — ไม่มีอะไรอื่นในเครื่องนี้ที่สตาร์ต capture ได้ ⇒ นี่คือหลักฐานตรงที่สุด
+   *ถ้ามาช้าเป็นสิบนาที* แปลว่า **watchdog 15 นาทีต่างหากที่สตาร์ตให้ ไม่ใช่ logon trigger*
+   — สองอย่างนี้แยกกันด้วย **เวลา** เท่านั้น อย่าสรุปรวม
+2. `Get-ScheduledTaskInfo` → `LastRunTime` เป็นเวลาหลัง logon
+3. **`board_ms` ต้องเดินต่อ ไม่ถอยกลับไป 89** — บอร์ดรับไฟจากตู้ลิฟต์ ไม่ใช่จาก USB
+   ⇒ PC รีบูตต้องไม่ทำให้บอร์ดรีเซ็ต ถ้า `board_ms` ถอย แปลว่ามีอย่างอื่นเกิดขึ้นที่ต้องอธิบาย
+
+ตรวจทั้งหมดทีเดียวด้วย:
+
+```
+cd D:\WhizdomLift
+python capture_status.py
+powershell -NoProfile -Command "Get-ScheduledTaskInfo -TaskName 'WhizdomLift captures' | Format-List LastRunTime,LastTaskResult,NextRunTime,NumberOfMissedRuns"
+```
+
+⚠️ **ถ้ากลับมาแล้วไม่มีอะไรเก็บเลย** สตาร์ตมือได้ทันทีโดยไม่ต้องรอแก้อะไร:
+
+```
+powershell -NoProfile -ExecutionPolicy Bypass -File D:\WhizdomLift\scripts\start_captures.ps1
+```
 
 `CAPTURING` ครบทั้ง 4 ตัว = ปกติ · `STALE` = โปรเซสอยู่แต่ไฟล์ไม่โต · `STOPPED` = ตายแล้ว
 · `DEGRADED` = บอร์ดผิดตัว / พอร์ตไม่ตรงหัวไฟล์ / ไม่มี beacon
