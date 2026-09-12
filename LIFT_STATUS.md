@@ -207,6 +207,28 @@ python log_lift.py auto 5 --listen --follow
 🔴 **กรณีเดียวที่มันจะหยุดคือมีสองพอร์ตประกาศเลขลิฟต์เดียวกัน** = บอร์ดสองตัวถูกแฟลช
 `-DLIFT_ID` ซ้ำกัน ต้องแฟลชใหม่ให้เลขไม่ซ้ำก่อน มันจะไม่เดาให้
 
+### ถ้าโปรเซสตาย หรือเครื่องรีบูต — ตั้ง Scheduled Task ครั้งเดียว
+
+`--follow` แก้เรื่องเลข COM เปลี่ยน แต่**ไม่ได้แก้เรื่องโปรเซสตายหรือเครื่องรีบูต**
+ตัวที่แก้สองเรื่องนั้นคือ task ที่เรียก `scripts/start_captures.ps1` ซึ่ง**สตาร์ตเฉพาะลิฟต์ที่ยังไม่มี
+ตัวบันทึก** (รันซ้ำบนเครื่องที่ปกติจะขึ้นแค่ `nothing to start`)
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install_capture_task.ps1
+```
+
+ไม่ต้องใช้สิทธิ์ admin — เป็น task ระดับ user · ตั้งให้รัน **ตอน logon และทุก 15 นาที**
+ดูก่อนโดยไม่ลงทะเบียนจริงได้ด้วย `-WhatIf` · ถอนด้วย `scripts\uninstall_capture_task.ps1`
+
+สั่งทำงานทันทีโดยไม่ต้องรอ:
+
+```powershell
+Start-ScheduledTask -TaskName 'WhizdomLift captures'
+```
+
+🔴 **ข้อจำกัด**: `AtLogOn` ทำงานตอนมีคน logon — เครื่องรีบูตแล้วไม่มีใคร logon จะไม่มีอะไรสตาร์ต
+ถ้าต้องรันแบบ headless จริง ๆ ต้องใช้ task ที่เก็บ credential ซึ่งต้องสิทธิ์ admin
+
 `CAPTURING` ครบทั้ง 4 ตัว = ปกติ · `STALE` = โปรเซสอยู่แต่ไฟล์ไม่โต · `STOPPED` = ตายแล้ว
 · `DEGRADED` = บอร์ดผิดตัว / พอร์ตไม่ตรงหัวไฟล์ / ไม่มี beacon
 
