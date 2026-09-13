@@ -30,10 +30,19 @@ actually establish -- whether the board runs, and keeps running.
 So this holds ONE connection open for the whole window and never
 reopens. Every reopen would destroy the history it is measuring.
 """
+import os
 import re
 import sys
 import time
 from datetime import datetime
+
+# pyserial may live in the user profile, which a process started by the
+# Scheduled Task cannot read - it dies on "import serial" before writing a
+# line. A copy next to this file on D: is reachable from every context:
+#     pip install --target vendor pyserial
+_vendor = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor")
+if os.path.isdir(_vendor) and _vendor not in sys.path:
+    sys.path.insert(0, _vendor)
 
 import serial
 

@@ -21,10 +21,19 @@ This resolves; it does not rebind. Which lift a log belongs to stays a human
 decision, because finding a foreign board on a port is one negative fact and
 does not say whether somebody moved a plug or a dongle died.
 """
+import os
 import json
 import re
 import sys
 import time
+
+# pyserial may live in the user profile, which a process started by the
+# Scheduled Task cannot read - it dies on "import serial" before writing a
+# line. A copy next to this file on D: is reachable from every context:
+#     pip install --target vendor pyserial
+_vendor = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor")
+if os.path.isdir(_vendor) and _vendor not in sys.path:
+    sys.path.insert(0, _vendor)
 
 import serial
 from serial.tools import list_ports

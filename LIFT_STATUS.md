@@ -241,7 +241,39 @@ Start-ScheduledTask -TaskName 'WhizdomLift captures'
 | รอบแรก | 22:48:48 → `result = 0` (ทุกลิฟต์รันอยู่แล้ว จึงไม่สตาร์ตซ้ำ) |
 | **รอบที่สอง** | **23:03:03 → `result = 0` · missed runs 0** ⇒ repetition ยิงจริง ไม่ใช่แค่ตั้งค่าไว้ |
 
-#### 🔄 ทดสอบ `AtLogOn` ด้วยการรีบูตจริง — 13 ก.ย. 2026 00:20
+#### 🔴 ผลการรีบูตจริง 13 ก.ย. 2026 — **ล้มเหลว แล้วแก้แล้ว**
+
+รีบูต 00:25:04 · **capture ไม่กลับมาเลยจนถึง 08:06 = หยุดไป 7 ชม. 41 นาที**
+ขณะที่ task รันครบทุก 15 นาที `result=0` ทุกรอบ `missed=0`
+
+สามสาเหตุอิสระซ้อนกัน — รายละเอียดอยู่ใน CLAUDE.md §6.19:
+
+| # | สาเหตุ | แก้ด้วย |
+|---|---|---|
+| 1 | `-Lifts 1,2,3,5` ผ่าน `-File` กลายเป็นเลข **1235** (PowerShell อ่านจุลภาคเป็นตัวคั่นหลักพัน) | รับเป็น string แล้ว split เอง |
+| 2 | โปรเซสของ task อ่าน `pyserial` ใน user profile ไม่ได้ → ตายที่ `import serial` **ก่อนเขียนล็อกบรรทัดแรก** | `pip install --target vendor pyserial` + bootstrap ในสคริปต์ |
+| 3 | โปรเซสที่ task สตาร์ตซ่อน `CommandLine` → มอนิเตอร์บอก STOPPED ทั้งที่กำลังเก็บ และ watchdog เกือบสตาร์ตซ้อน | logger ทิ้ง `capture_lift_<n>.pid` ไว้ |
+
+**ยืนยันหลังแก้** — หยุด capture ทั้งสี่ตัวอย่างสะอาด แล้วให้ **task เป็นคนกู้คืนเอง**:
+
+```
+09:05:13  already capturing: (none)
+09:05:13  missing, will start: 1, 2, 3, 5
+09:07:56  scan says: COM21=lift3 COM20=lift1 COM22=lift2 COM14=lift5
+09:07:56  lift 1 started on COM20 as pid 11724
+09:08:02  lift 5 started on COM14 as pid 9384
+09:08:12  8s later - alive: 1,2,3,5  gone: none
+```
+
+⇒ `python capture_status.py` = **ALL CAPTURING** ครบสี่ตัว มี pid file ครบ
+
+⏳ **ยังไม่ได้ยืนยันซ้ำ: `AtLogOn` หลังแก้** — ต้องรีบูตอีกครั้งถึงจะเห็น
+สิ่งที่ยืนยันแล้วคือ **action ของ task กู้คืนได้จริงทั้งสี่ตัว** ซึ่งเป็นส่วนที่เคยพัง
+ส่วน trigger เองยิงตรงเวลามาตลอด (`missed=0`)
+
+---
+
+#### 🔄 บันทึกตอนเริ่มทดสอบ — 13 ก.ย. 2026 00:20
 
 หยุด capture ทั้งสี่ตัวอย่างสะอาดแล้วรีบูตเครื่อง **ผู้ใช้ต้อง logon หลังรีบูตถึงจะเห็นผล**
 (task เป็น user-level `LogonType=Interactive` — ไม่ logon = ไม่มีอะไรทำงาน ทั้ง logon trigger

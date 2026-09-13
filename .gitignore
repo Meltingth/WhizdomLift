@@ -18,3 +18,10 @@ firmware/*/*
 
 # Runtime control flag for log_lift.py
 STOP_CAPTURE
+
+# pyserial vendored outside the user profile so a Scheduled Task can
+# import it; reinstall with: pip install --target vendor pyserial
+vendor/
+capture_launcher.log
+wmi_out*.txt
+capture_lift_*.pid

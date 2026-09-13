@@ -168,6 +168,30 @@ def secs_ago(clock):
     return float(delta)
 
 
+def pid_alive(lift):
+    """The pid the logger left behind, if that process still exists.
+
+    Reading a process's command line needs rights this shell may not have over
+    a process the Scheduled Task started; asking whether a pid exists does not.
+    """
+    path = "capture_lift_%d.pid" % lift
+    try:
+        with open(path, encoding="utf-8") as fh:
+            pid = fh.read().strip()
+    except OSError:
+        return None
+    if not pid.isdigit():
+        return None
+    ps = ("(Get-CimInstance Win32_Process -Filter 'ProcessId=%s' "
+          "-ErrorAction SilentlyContinue).Name" % pid)
+    try:
+        out = subprocess.run(["powershell", "-NoProfile", "-Command", ps],
+                             capture_output=True, text=True, timeout=60).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return int(pid) if out.strip().lower() == "python.exe" else None
+
+
 def check(lift, procs):
     path = "capture_lift_%d.log" % lift
     proc = procs.get(lift_id(str(lift)))
@@ -213,6 +237,26 @@ def check(lift, procs):
         notes.append("saw a foreign board: " + s["wrong_board"][-1])
 
     if proc is None:
+        # A logger started by the Scheduled Task reports an empty CommandLine
+        # to a query from an ordinary shell, so it is invisible to running()
+        # even while it writes. Its pid file still names a process that exists,
+        # and process existence crosses that privilege boundary where the
+        # command line does not.
+        alive_pid = pid_alive(lift)
+        if alive_pid:
+            return "CAPTURING", notes + [
+                "process not visible from this shell (a capture started by the "
+                "scheduled task hides its command line), but capture_lift_%d.pid "
+                "names pid %d and that process is alive" % (lift, alive_pid)]
+        # Last resort. A logger from before pid files existed leaves neither a
+        # readable command line nor a pid file, but a log line one second old
+        # is not the log of a stopped capture. Saying STOPPED next to "last
+        # line 0s ago" is the contradiction this file is built to avoid.
+        if age is not None and age <= STALE_SECS:
+            return "CAPTURING?", notes + [
+                "no visible process and no pid file, but the log was written "
+                "%.0fs ago - something is capturing this lift and this tool "
+                "cannot say what. Restart it to get a pid file." % age]
         return "STOPPED", notes + ["no log_lift.py process is running for this lift"]
     notes.insert(0, "pid %d  %s" % (proc["pid"], proc["port"] or "auto"))
     if proc["port"] is not None and proc["port"] != s["port"]:
@@ -246,7 +290,7 @@ def main():
     worst = 0
     for lift in lifts:
         verdict, notes = check(lift, procs)
-        ok = verdict == "CAPTURING"
+        ok = verdict == "CAPTURING"   # "CAPTURING?" is deliberately not ok
         worst = max(worst, 0 if ok else 1)
         print("%slift %d  %s" % ("ok " if ok else "!! ", lift, verdict))
         if not quiet:

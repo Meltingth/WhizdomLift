@@ -88,8 +88,17 @@ dongle stays in receive and cannot fight the bus. That matters here --
 the boards are wired transmit-only (RS485_PLAN.md), so anything this end
 put on the pair would collide with the Arduino with no arbitration.
 """
+import os
 import sys
 import time
+
+# pyserial may live in the user profile, which a process started by the
+# Scheduled Task cannot read - it dies on "import serial" before writing a
+# line. A copy next to this file on D: is reachable from every context:
+#     pip install --target vendor pyserial
+_vendor = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor")
+if os.path.isdir(_vendor) and _vendor not in sys.path:
+    sys.path.insert(0, _vendor)
 
 import serial
 

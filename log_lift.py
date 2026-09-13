@@ -22,6 +22,14 @@ import sys
 import time
 from datetime import datetime
 
+# pyserial may live in the user profile, which a process started by the
+# Scheduled Task cannot read - it dies on "import serial" before writing a
+# line. A copy next to this file on D: is reachable from every context:
+#     pip install --target vendor pyserial
+_vendor = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor")
+if os.path.isdir(_vendor) and _vendor not in sys.path:
+    sys.path.insert(0, _vendor)
+
 import serial
 from serial.tools import list_ports
 
@@ -400,6 +408,22 @@ def main():
             f"  ports available now: {', '.join(available) if available else '(none)'}\n"
             f"  check the USB cable, then rerun with the right port,\n"
             f"  or add --follow to let this capture find Lift {LIFT} itself.")
+    # Leave a PID behind. A capture started by the Scheduled Task reports an
+    # EMPTY command line to any query from an ordinary shell, so the watchdog
+    # cannot recognise it and would start a second logger on the same lift -
+    # the corruption 6.8 exists to prevent. Process EXISTENCE is visible even
+    # when the command line is not, so the pid is the identity that survives
+    # the privilege boundary. Best effort: a stale file is handled by checking
+    # that the pid is alive, not by trusting the file.
+    PIDFILE = os.path.join(os.path.dirname(os.path.abspath(LOG)),
+                           f"capture_lift_{LIFT}.pid") if LIFT else None
+    if PIDFILE:
+        try:
+            with open(PIDFILE, "w", encoding="utf-8") as fh:
+                fh.write(str(os.getpid()))
+        except OSError:
+            pass
+
     log = open(LOG, "a", encoding="utf-8", buffering=1)   # line buffered
     if OWNER:
         log.write(f"{OWNER}\n")
@@ -660,6 +684,11 @@ def main():
               f"{changes} changes in {mins:.1f} min, "
               f"{rejects} rejected =====" + chr(10))
     log.close()
+    if PIDFILE:
+        try:
+            os.remove(PIDFILE)
+        except OSError:
+            pass
     print(f"\n\nstopped: {changes} state changes over {mins:.1f} minutes")
     if rejects:
         pct = 100 * rejects / max(changes + rejects, 1)
