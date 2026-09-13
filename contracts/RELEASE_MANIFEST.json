@@ -1,11 +1,11 @@
 {
   "docType": "CONTRACT_RELEASE_MANIFEST",
-  "version": "2.0.0-draft.1",
+  "version": "2.0.0-draft.2",
   "status": "DRAFT",
   "approvedBy": null,
   "approvedAt": null,
   "supersedes": {
-    "description": "v1 baseline found inside the revision pack, read-only reference",
+    "description": "v1 baseline found inside the revision pack, read-only reference, AND candidate 2.0.0-draft.1 (superseded by this candidate -- draft.1's REST base path decision, /api/v1 kept, is reversed here to /api/v2 per owner decision; draft.1's hash sha256:c80b2a1889d0ce8ce56f0f5e8c87634fbe43a37be340d42633c8d854ea5ae225 is retired, not reused, and MUST NOT be cited as this candidate's hash)",
     "files": [
       "reference/legacy-contracts/LMS_NG_MQTT_Topic_Specification_v1.yaml",
       "reference/legacy-contracts/LMS_NG_OpenAPI_v1.yaml"

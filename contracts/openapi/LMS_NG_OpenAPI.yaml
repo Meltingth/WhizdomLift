@@ -1,15 +1,21 @@
 openapi: 3.1.0
 info:
   title: LMS-NG API
-  version: 2.0.0-draft.1
+  version: 2.0.0-draft.2
   description: >
-    REST + WebSocket API for the Lift Monitoring System, candidate 2.0.0-draft.1. Base path
-    kept at /api/v1 unchanged from the v1 baseline (no deployed v1 consumer was found in
-    PRE-0 -- see docs/preflight/CONTRACT_BASELINE_DIFF.md section 5 -- so there is nothing
-    a version-bumped base path would protect). Timestamps are RFC 3339 UTC; clients convert
-    to Asia/Bangkok for display. Errors use RFC 7807 Problem Details, extended with a
-    machine-checkable `code` enum (see components.schemas.Problem).
-    Status DRAFT -- not approved.
+    REST + WebSocket API for the Lift Monitoring System, candidate 2.0.0-draft.2. Base path
+    is /api/v2 (owner decision, superseding draft.1's "/api/v1 kept unchanged" choice): a
+    legacy v1 OpenAPI baseline already exists, this candidate changes multiple field
+    semantics that are breaking regardless of base path (see CONTRACT_BASELINE_DIFF.md), and
+    PRE-0/A-DRAFT's search for a deployed v1 consumer was scoped to the inspected
+    repositories, this machine's local filesystem, and the supplied revision-pack artifacts
+    only -- it did not reach the Dell/server environment or the deliberately-excluded
+    LMS-NG Live Dashboard.html, so "no consumer found" was never strong enough grounds to
+    justify reusing a legacy base path. /api/v2 costs nothing today and removes that risk
+    entirely -- see docs/preflight/CONTRACT_BASELINE_DIFF.md section 5 for the full record of
+    both decisions. Timestamps are RFC 3339 UTC; clients convert to Asia/Bangkok for display.
+    Errors use RFC 7807 Problem Details, extended with a machine-checkable `code` enum (see
+    components.schemas.Problem). Status DRAFT -- not approved.
 servers:
   - url: https://lms.example.local
     description: Site server (placeholder; real host set per deployment, never committed)
@@ -26,7 +32,7 @@ tags:
   - name: System
 
 paths:
-  /api/v1/health:
+  /api/v2/health:
     get:
       tags: [System]
       operationId: health
@@ -39,7 +45,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Health' }
 
-  /api/v1/elevators:
+  /api/v2/elevators:
     get:
       tags: [Elevators]
       operationId: listElevators
@@ -85,7 +91,7 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
 
-  /api/v1/elevators/{id}:
+  /api/v2/elevators/{id}:
     get:
       tags: [Elevators]
       operationId: getElevator
@@ -102,7 +108,7 @@ paths:
               schema: { $ref: '#/components/schemas/ElevatorStatus' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  /api/v1/elevators/{id}/events:
+  /api/v2/elevators/{id}/events:
     get:
       tags: [Events]
       operationId: getElevatorEvents
@@ -130,7 +136,7 @@ paths:
                 type: array
                 items: { $ref: '#/components/schemas/ElevatorEvent' }
 
-  /api/v1/gateways:
+  /api/v2/gateways:
     get:
       tags: [Gateways]
       operationId: listGateways
@@ -147,7 +153,7 @@ paths:
                 type: array
                 items: { $ref: '#/components/schemas/GatewayStatus' }
 
-  /api/v1/alarms:
+  /api/v2/alarms:
     get:
       tags: [Alarms]
       operationId: listAlarms
@@ -170,7 +176,7 @@ paths:
             application/json:
               schema: { type: array, items: { $ref: '#/components/schemas/Alarm' } }
 
-  /api/v1/alarms/{id}/ack:
+  /api/v2/alarms/{id}/ack:
     post:
       tags: [Alarms]
       operationId: ackAlarm
@@ -195,7 +201,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Alarm' }
 
-  /api/v1/elevators/{id}/commands:
+  /api/v2/elevators/{id}/commands:
     post:
       tags: [Commands]
       operationId: requestElevatorCommand
@@ -231,7 +237,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Problem' }
 
-  /api/v1/analytics/summary:
+  /api/v2/analytics/summary:
     get:
       tags: [Analytics]
       operationId: getAnalyticsSummary
@@ -259,7 +265,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/AnalyticsSummary' }
 
-  /api/v1/demo/start:
+  /api/v2/demo/start:
     post:
       tags: [Demo]
       operationId: startDemo
@@ -285,7 +291,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/DemoState' }
 
-  /api/v1/demo/stop:
+  /api/v2/demo/stop:
     post:
       tags: [Demo]
       operationId: stopDemo
@@ -298,7 +304,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/DemoState' }
 
-  /api/v1/auth/login:
+  /api/v2/auth/login:
     post:
       tags: [Auth]
       operationId: login
@@ -321,7 +327,7 @@ paths:
               schema: { $ref: '#/components/schemas/LoginResponse' }
         '401': { $ref: '#/components/responses/Unauthorized' }
 
-  /api/v1/auth/me:
+  /api/v2/auth/me:
     get:
       tags: [Auth]
       operationId: getMe
@@ -332,7 +338,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/User' }
 
-  /api/v1/realtime/token:
+  /api/v2/realtime/token:
     post:
       tags: [Realtime]
       operationId: issueRealtimeToken

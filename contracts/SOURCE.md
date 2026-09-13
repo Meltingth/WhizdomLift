@@ -7,10 +7,10 @@ hash-verified copy.
 | Field | Value |
 |---|---|
 | Source repo | lms-ng (local checkout at sync time: `D:\lms-ng`) |
-| Source commit | `unknown (lms-ng has no commits yet at sync time)` |
-| Contract version | `2.0.0-draft.1` |
-| Tree hash (sha256, per contracts-hash.ps1's algorithm, excludes RELEASE_MANIFEST.json and this file) | `sha256:c80b2a1889d0ce8ce56f0f5e8c87634fbe43a37be340d42633c8d854ea5ae225` |
-| Synced at (UTC) | `2026-09-13T13:42:08Z` |
+| Source commit | `2881d70f702439c5e8eb1ce51b5e810aef833848` |
+| Contract version | `2.0.0-draft.2` |
+| Tree hash (sha256, per contracts-hash.ps1's algorithm, excludes RELEASE_MANIFEST.json and this file) | `sha256:ed2414fb8e830a9c281499c9a5cff8ba441668acb5b98fbb2265a6da5e4d18b3` |
+| Synced at (UTC) | `2026-09-13T15:32:58Z` |
 | Synced by | `scripts/sync-contracts.ps1 -Update` |
 
 ## How this hash is computed
