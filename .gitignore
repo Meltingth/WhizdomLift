@@ -15,13 +15,25 @@ IODebug/build/arduino.avr.mega/*
 # Lift identity is compiled in, so these are NOT interchangeable between lifts.
 firmware/*/*
 !firmware/*/IODebug.ino.hex
+# firmware/docs is documentation, not a build directory - the pattern above
+# swallowed it by accident.
+!firmware/docs/*
 
-# Runtime control flag for log_lift.py
+# ---------------------------------------------------------------------------
+# Everything developed here is published - nothing in this project is secret
+# (user decision, 13 Sep 2026). What remains ignored is only what would do
+# harm, or is regenerated automatically, if it reached another machine:
+#   __pycache__/ *.pyc and the IODebug linker intermediates (top of this file)
+#   are rebuilt on every run or compile; the flashed .hex images are kept.
+
+# Runtime control flag for log_lift.py. Committed, it would stop every
+# capture on any machine that pulls the repo.
 STOP_CAPTURE
 
-# pyserial vendored outside the user profile so a Scheduled Task can
-# import it; reinstall with: pip install --target vendor pyserial
-vendor/
-capture_launcher.log
-wmi_out*.txt
+# Live process handles written by running loggers. On another machine - or on
+# this one after a reboot - the pid names an unrelated process, and the
+# watchdog would then believe that lift is already being captured and skip it.
 capture_lift_*.pid
+
+# (vendor/, capture_launcher.log and the diagnostic outputs used to be ignored;
+# they are work products and are now published.)

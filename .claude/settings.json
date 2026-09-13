@@ -1,0 +1,18 @@
+{
+  "model": "fable",
+  "ultracode": true,
+  "fallbackModel": ["opus", "sonnet"],
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)", "Bash(git add:*)", "Bash(git commit:*)", "Bash(git push:*)", "Bash(git log:*)", "Bash(git diff:*)",
+      "Bash(docker compose:*)", "Bash(docker:*)",
+      "Bash(pnpm:*)", "Bash(npm:*)", "Bash(npx:*)", "Bash(node:*)",
+      "Bash(python:*)", "Bash(pytest:*)", "Bash(pip:*)",
+      "Bash(pwsh:*)", "Bash(powershell:*)", "Bash(dbmate:*)", "Bash(nssm:*)"
+    ],
+    "deny": ["Bash(git push --force:*)", "Bash(rm -rf:*)"]
+  },
+  "env": {
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "2"
+  }
+}

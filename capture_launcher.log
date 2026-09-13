@@ -1,0 +1,236 @@
+﻿2026-09-13 08:17:30  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:17:30  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:17:31  already capturing: 1=500 2=10088 3=2024
+2026-09-13 08:17:31  missing, will start: 1235
+2026-09-13 08:17:31  resolving ports by identity (a moment per free port)
+2026-09-13 08:17:31  port scan failed (Traceback (most recent call last):) - every lift will start with auto
+2026-09-13 08:17:31  lift 1235 started on auto as pid 2980
+2026-09-13 08:17:37  3s later - alive: none  gone: 1235
+2026-09-13 08:17:37  WARNING processes started by this run are already gone - they are being killed, not failing to start
+2026-09-13 08:17:37  --- run end ---
+2026-09-13 08:19:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:19:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:19:01  already capturing: 1=500 2=10088 3=2024
+2026-09-13 08:19:01  missing, will start: 1235
+2026-09-13 08:19:01  resolving ports by identity (a moment per free port)
+2026-09-13 08:19:01  port scan failed (Traceback (most recent call last):) - every lift will start with auto
+2026-09-13 08:19:01  lift 1235 started on auto as pid 1736
+2026-09-13 08:19:06  3s later - alive: none  gone: 1235
+2026-09-13 08:19:06  WARNING processes started by this run are already gone - they are being killed, not failing to start
+2026-09-13 08:19:06  --- run end ---
+2026-09-13 08:21:05  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:21:05  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:21:05  lifts requested: 1, 2, 3, 5
+2026-09-13 08:21:06  already capturing: 1=500 2=10088 3=2024
+2026-09-13 08:21:06  missing, will start: 5
+2026-09-13 08:21:06  resolving ports by identity (a moment per free port)
+2026-09-13 08:21:47  port scan failed (You cannot call a method on a null-valued expression.) - every lift will start with auto
+2026-09-13 08:21:47  lift 5 started on auto as pid 3164
+2026-09-13 08:21:52  3s later - alive: 5  gone: none
+2026-09-13 08:21:52  --- run end ---
+2026-09-13 08:22:23  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:22:24  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:22:24  lifts requested: 1, 2, 3, 5
+2026-09-13 08:22:24  already capturing: 1=500 2=10088 3=2024
+2026-09-13 08:22:24  missing, will start: 5
+2026-09-13 08:22:24  resolving ports by identity (a moment per free port)
+2026-09-13 08:22:24  port scan failed (Traceback (most recent call last):) - every lift will start with auto
+2026-09-13 08:22:24  lift 5 started on auto as pid 10944
+2026-09-13 08:22:29  3s later - alive: none  gone: 5
+2026-09-13 08:22:29  WARNING processes started by this run are already gone - they are being killed, not failing to start
+2026-09-13 08:22:29  --- run end ---
+2026-09-13 08:25:23  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:25:23  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:25:23  lifts requested: 1, 2, 3, 5
+2026-09-13 08:25:24  already capturing: 1=500 2=10088 3=2024
+2026-09-13 08:25:24  missing, will start: 5
+2026-09-13 08:25:24  resolving ports by identity (a moment per free port)
+2026-09-13 08:25:24  port scan failed (Traceback (most recent call last):) - every lift will start with auto
+2026-09-13 08:25:24  lift 5 started on auto as pid 10880
+2026-09-13 08:25:29  3s later - alive: none  gone: 5
+2026-09-13 08:25:29  WARNING processes started by this run are already gone - they are being killed, not failing to start
+2026-09-13 08:25:29  --- run end ---
+2026-09-13 08:32:39  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:32:39  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:32:39  note: could not resolve user site-packages (got "C:\Users\Administrator\AppData\Roaming\Python\Python312\site-packages")
+2026-09-13 08:32:39  UNHANDLED RemoteException: Traceback (most recent call last):
+2026-09-13 08:32:39    at At D:\WhizdomLift\scripts\start_captures.ps1:97 char:5
++     & $Python -c "import serial" 2>$null
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-09-13 08:32:39  --- run end (error) ---
+2026-09-13 08:33:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:33:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:33:59  note: could not resolve user site-packages (got "C:\Users\Administrator\AppData\Roaming\Python\Python312\site-packages")
+2026-09-13 08:34:00  UNHANDLED RemoteException: Traceback (most recent call last):
+2026-09-13 08:34:00    at At D:\WhizdomLift\scripts\start_captures.ps1:97 char:5
++     & $Python -c "import serial" 2>$null
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-09-13 08:34:00  --- run end (error) ---
+2026-09-13 08:35:29  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:35:29  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:35:29  note: could not use user site-packages (exit 0, got "C:\Users\Administrator\AppData\Roaming\Python\Python312\site-packages")
+2026-09-13 08:35:29  FATAL this python cannot import pyserial, so every logger would die on startup
+2026-09-13 08:35:29    interpreter : C:\Python312\python.exe
+2026-09-13 08:35:29    PYTHONPATH  : 
+2026-09-13 08:35:29    | python.exe : Traceback (most recent call last):
+2026-09-13 08:35:29    | At D:\WhizdomLift\scripts\start_captures.ps1:97 char:20
+2026-09-13 08:35:29    | +             $out = & $exe @arguments 2>&1 | Out-String
+2026-09-13 08:35:29    | +                    ~~~~~~~~~~~~~~~~~~~~~~
+2026-09-13 08:35:29    |     + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+2026-09-13 08:35:29    |     + FullyQualifiedErrorId : NativeCommandError
+2026-09-13 08:35:29    |   File "<string>", line 1, in <module>
+2026-09-13 08:35:29    | ModuleNotFoundError: No module named 'serial'
+2026-09-13 08:35:29    fix it once, from an ELEVATED PowerShell:
+2026-09-13 08:35:29      & "C:\Python312\python.exe" -m pip install --no-user pyserial
+2026-09-13 08:38:52  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:38:52  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:38:53  pyserial not importable as-is - looking for the user site-packages
+2026-09-13 08:38:53  PYTHONPATH set to C:\Users\Administrator\AppData\Roaming\Python\Python312\site-packages
+2026-09-13 08:38:53  FATAL this python cannot import pyserial, so every logger would die on startup
+2026-09-13 08:38:53    interpreter : C:\Python312\python.exe
+2026-09-13 08:38:53    PYTHONPATH  : C:\Users\Administrator\AppData\Roaming\Python\Python312\site-packages
+2026-09-13 08:38:53    | python.exe : Traceback (most recent call last):
+2026-09-13 08:38:53    | At D:\WhizdomLift\scripts\start_captures.ps1:97 char:20
+2026-09-13 08:38:53    | +             $out = & $exe @arguments 2>&1 | Out-String
+2026-09-13 08:38:53    | +                    ~~~~~~~~~~~~~~~~~~~~~~
+2026-09-13 08:38:53    |     + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+2026-09-13 08:38:53    |     + FullyQualifiedErrorId : NativeCommandError
+2026-09-13 08:38:53    |   File "<string>", line 1, in <module>
+2026-09-13 08:38:53    | ModuleNotFoundError: No module named 'serial'
+2026-09-13 08:38:53    fix it once, from an ELEVATED PowerShell, and this whole class of
+2026-09-13 08:38:53    failure goes away because pyserial stops depending on the profile:
+2026-09-13 08:38:53      & "C:\Python312\python.exe" -m pip install --no-user pyserial
+2026-09-13 08:42:40  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:42:40  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:42:41  pyserial not importable as-is - trying the known locations
+2026-09-13 08:42:41    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 08:42:41  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 08:42:41  lifts requested: 1, 2, 3, 5
+2026-09-13 08:42:41  already capturing: 1=500 2=10088 3=2024
+2026-09-13 08:42:41  missing, will start: 5
+2026-09-13 08:42:41  resolving ports by identity (a moment per free port)
+2026-09-13 08:43:22  scan says: COM21=claimed COM20=claimed COM22=claimed COM14=lift5
+2026-09-13 08:43:22  lift 5 started on COM14 as pid 7264
+2026-09-13 08:43:32  8s later - alive: 5  gone: none
+2026-09-13 08:43:32  --- run end ---
+2026-09-13 08:46:38  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:46:38  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:46:38  pyserial not importable as-is - trying the known locations
+2026-09-13 08:46:38    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 08:46:38  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 08:46:38  lifts requested: 1, 2, 3, 5
+2026-09-13 08:46:38  already capturing: 1=500 2=10088 3=2024 5=7264
+2026-09-13 08:46:38  nothing to start - every requested lift is already capturing
+2026-09-13 08:48:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:48:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:49:00  pyserial not importable as-is - trying the known locations
+2026-09-13 08:49:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 08:49:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 08:49:00  lifts requested: 1, 2, 3, 5
+2026-09-13 08:49:01  already capturing: 1=500 2=10088 3=2024 5=7264
+2026-09-13 08:49:01  nothing to start - every requested lift is already capturing
+2026-09-13 08:51:58  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:51:58  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:51:58  pyserial import check passed (already on sys.path)
+2026-09-13 08:51:58  lifts requested: 1, 2, 3, 5
+2026-09-13 08:51:58  already capturing: 1=500 2=10088 3=2024
+2026-09-13 08:51:58  lift 5 has no visible process but its log is still growing - leaving it alone
+2026-09-13 08:51:58  nothing to start - every requested lift is already capturing
+2026-09-13 08:52:24  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:52:24  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:52:24  pyserial not importable as-is - trying the known locations
+2026-09-13 08:52:24    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 08:52:24  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 08:52:24  lifts requested: 1, 2, 3, 5
+2026-09-13 08:52:25  already capturing: 5=7264
+2026-09-13 08:52:25  lift 1 has no visible process but its log is still growing - leaving it alone
+2026-09-13 08:52:25  lift 2 has no visible process but its log is still growing - leaving it alone
+2026-09-13 08:52:25  lift 3 has no visible process but its log is still growing - leaving it alone
+2026-09-13 08:52:25  nothing to start - every requested lift is already capturing
+2026-09-13 08:58:11  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 08:58:11  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 08:58:11  pyserial not importable as-is - trying the known locations
+2026-09-13 08:58:12    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 08:58:12  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 08:58:12  lifts requested: 1, 2, 3, 5
+2026-09-13 08:58:12  already capturing: 5=7264
+2026-09-13 08:58:12  missing, will start: 1, 2, 3
+2026-09-13 08:58:12  resolving ports by identity (a moment per free port)
+2026-09-13 09:00:14  scan says: COM21=lift3 COM20=lift1 COM22=lift2 COM14=claimed
+2026-09-13 09:00:14  lift 1 started on COM20 as pid 10776
+2026-09-13 09:00:16  lift 2 started on COM22 as pid 880
+2026-09-13 09:00:18  lift 3 started on COM21 as pid 6816
+2026-09-13 09:00:29  8s later - alive: 1,2,3  gone: none
+2026-09-13 09:00:29  --- run end ---
+2026-09-13 09:04:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 09:04:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 09:04:00  pyserial not importable as-is - trying the known locations
+2026-09-13 09:04:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 09:04:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 09:04:00  lifts requested: 1, 2, 3, 5
+2026-09-13 09:04:01  already capturing: 1=10776 2=880 3=6816 5=7264
+2026-09-13 09:04:01  nothing to start - every requested lift is already capturing
+2026-09-13 09:05:12  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 09:05:12  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 09:05:13  pyserial not importable as-is - trying the known locations
+2026-09-13 09:05:13    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 09:05:13  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 09:05:13  lifts requested: 1, 2, 3, 5
+2026-09-13 09:05:13  already capturing: (none)
+2026-09-13 09:05:13  missing, will start: 1, 2, 3, 5
+2026-09-13 09:05:13  resolving ports by identity (a moment per free port)
+2026-09-13 09:07:56  scan says: COM21=lift3 COM20=lift1 COM22=lift2 COM14=lift5
+2026-09-13 09:07:56  lift 1 started on COM20 as pid 11724
+2026-09-13 09:07:58  lift 2 started on COM22 as pid 11456
+2026-09-13 09:08:00  lift 3 started on COM21 as pid 6156
+2026-09-13 09:08:02  lift 5 started on COM14 as pid 9384
+2026-09-13 09:08:12  8s later - alive: 1,2,3,5  gone: none
+2026-09-13 09:08:12  --- run end ---
+2026-09-13 09:19:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 09:19:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 09:19:00  pyserial not importable as-is - trying the known locations
+2026-09-13 09:19:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 09:19:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 09:19:00  lifts requested: 1, 2, 3, 5
+2026-09-13 09:19:00  already capturing: 1=11724 2=11456 3=6156 5=9384
+2026-09-13 09:19:00  nothing to start - every requested lift is already capturing
+2026-09-13 09:24:24  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 09:24:24  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 09:24:25  pyserial not importable as-is - trying the known locations
+2026-09-13 09:24:25    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 09:24:25  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 09:24:25  lifts requested: 1, 2, 3, 5
+2026-09-13 09:24:25  already capturing: (none)
+2026-09-13 09:24:26  missing, will start: 1, 2, 3, 5
+2026-09-13 09:24:26  resolving ports by identity (a moment per free port)
+2026-09-13 09:27:09  scan says: COM21=lift3 COM20=lift1 COM22=lift2 COM14=lift5
+2026-09-13 09:27:09  lift 1 started on COM20 as pid 5724
+2026-09-13 09:27:11  lift 2 started on COM22 as pid 10316
+2026-09-13 09:27:13  lift 3 started on COM21 as pid 8476
+2026-09-13 09:27:15  lift 5 started on COM14 as pid 3496
+2026-09-13 09:27:26  8s later - alive: 1,2,3,5  gone: none
+2026-09-13 09:27:26  --- run end ---
+2026-09-13 09:31:34  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 09:31:34  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 09:31:35  pyserial not importable as-is - trying the known locations
+2026-09-13 09:31:35    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 09:31:35  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 09:31:35  lifts requested: 1, 2, 3, 5
+2026-09-13 09:31:36  already capturing: (none)
+2026-09-13 09:31:36  missing, will start: 1, 2, 3, 5
+2026-09-13 09:31:36  resolving ports by identity (a moment per free port)
+2026-09-13 09:32:01  scan says: COM21=lift3 COM20=lift1 COM22=lift2 COM14=lift5
+2026-09-13 09:32:01  lift 1 started on COM20 as pid 11360
+2026-09-13 09:32:03  lift 2 started on COM22 as pid 12660
+2026-09-13 09:32:05  lift 3 started on COM21 as pid 11684
+2026-09-13 09:32:07  lift 5 started on COM14 as pid 12100
+2026-09-13 09:32:17  8s later - alive: 1,2,3,5  gone: none
+2026-09-13 09:32:17  --- run end ---
+2026-09-13 09:34:01  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 09:34:01  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 09:34:01  pyserial not importable as-is - trying the known locations
+2026-09-13 09:34:01    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 09:34:01  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 09:34:01  lifts requested: 1, 2, 3, 5
+2026-09-13 09:34:01  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 09:34:02  nothing to start - every requested lift is already capturing

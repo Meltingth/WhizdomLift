@@ -1,0 +1,4 @@
+COM99 is not present.
+  ports available now: COM1, COM2, COM21, COM20, COM22, COM14
+  check the USB cable, then rerun with the right port,
+  or add --follow to let this capture find Lift 5 itself.

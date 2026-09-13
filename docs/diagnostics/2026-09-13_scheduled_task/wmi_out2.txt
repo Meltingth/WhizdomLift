@@ -1,0 +1,7 @@
+C:\Users\Administrator\AppData\Roaming
+
+C:\Python312\python312.zip
+C:\Python312\DLLs
+C:\Python312\Lib
+C:\Python312
+C:\Python312\Lib\site-packages
