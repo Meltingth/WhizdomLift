@@ -1,0 +1,2292 @@
+openapi: 3.1.0
+info:
+  title: LMS-NG API
+  version: 1.0.0
+  description: REST API for Lift Monitoring System Next Generation. Timestamps are ISO-8601 UTC; UI converts to configured
+    timezone. Errors use RFC 7807 Problem Details.
+servers:
+- url: https://lms.example.local
+  description: Site server
+tags:
+- name: Assets
+- name: Devices
+- name: Monitoring
+- name: Alarms
+- name: Events
+- name: Commands
+- name: Maintenance
+- name: Analytics
+- name: Reports
+- name: Configuration
+- name: Administration
+- name: Integrations
+- name: System
+paths:
+  /api/v1/organizations:
+    get:
+      tags:
+      - Assets
+      summary: List organizations
+      operationId: listOrganizations
+      parameters:
+      - &id001
+        name: limit
+        in: query
+        schema:
+          type: integer
+          default: 50
+          maximum: 200
+      - &id002
+        name: cursor
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Organization'
+        '400': &id003
+          $ref: '#/components/responses/BadRequest'
+        '401': &id004
+          $ref: '#/components/responses/Unauthorized'
+        '403': &id005
+          $ref: '#/components/responses/Forbidden'
+        '404': &id006
+          $ref: '#/components/responses/NotFound'
+        '409': &id007
+          $ref: '#/components/responses/Conflict'
+      security:
+      - bearerAuth: []
+  /api/v1/sites:
+    get:
+      tags:
+      - Assets
+      summary: List/filter sites
+      operationId: listSites
+      parameters:
+      - name: organizationId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - *id001
+      - *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Site'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/buildings:
+    get:
+      tags:
+      - Assets
+      summary: List/filter buildings
+      operationId: listBuildings
+      parameters:
+      - name: siteId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - *id001
+      - *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Building'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/elevator-groups:
+    get:
+      tags:
+      - Assets
+      summary: List elevator groups
+      operationId: listElevatorGroups
+      parameters:
+      - name: buildingId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - *id001
+      - *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ElevatorGroup'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/elevators:
+    get:
+      tags:
+      - Assets
+      summary: List/filter elevators
+      operationId: listElevators
+      parameters:
+      - name: siteId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: groupId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: enabled
+        in: query
+        schema:
+          type: boolean
+      - *id001
+      - *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Elevator'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Assets
+      summary: Create elevator
+      operationId: createElevator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElevatorCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Elevator'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/elevators/{id}:
+    get:
+      tags:
+      - Assets
+      summary: Get elevator
+      operationId: getElevator
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Elevator'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+    patch:
+      tags:
+      - Assets
+      summary: Update elevator
+      operationId: updateElevator
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: If-Match
+        in: header
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElevatorUpdate'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Elevator'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/elevators/{id}/status:
+    get:
+      tags:
+      - Monitoring
+      summary: Get current real-time status
+      operationId: getElevatorStatus
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElevatorStatus'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/elevators/{id}/history:
+    get:
+      tags:
+      - Monitoring
+      summary: Get historical telemetry
+      operationId: getElevatorHistory
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: metrics
+        in: query
+        schema:
+          type: array
+          items:
+            type: string
+      - *id001
+      - *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TelemetryPoint'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/gateways:
+    get:
+      tags:
+      - Devices
+      summary: List gateways
+      operationId: listGateways
+      parameters:
+      - name: siteId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - *id001
+      - *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Gateway'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/gateways/{id}:
+    get:
+      tags:
+      - Devices
+      summary: Get gateway
+      operationId: getGateway
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gateway'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/gateways/{id}/diagnostics:
+    get:
+      tags:
+      - Devices
+      summary: Get gateway diagnostic counters
+      operationId: getGatewayDiagnostics
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GatewayDiagnostics'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/gateways/{id}/connectivity-test:
+    post:
+      tags:
+      - Devices
+      summary: Run safe connectivity test
+      operationId: testGatewayConnectivity
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectivityTest'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/alarms:
+    get:
+      tags:
+      - Alarms
+      summary: Search alarms
+      operationId: listAlarms
+      parameters:
+      - name: siteId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: elevatorId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: severity
+        in: query
+        schema:
+          type: string
+          enum:
+          - CRITICAL
+          - MAJOR
+          - MINOR
+          - WARNING
+          - INFO
+      - name: state
+        in: query
+        schema:
+          type: string
+          enum:
+          - ACTIVE_UNACK
+          - ACTIVE_ACK
+          - CLEARED
+          - CLOSED
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - *id001
+      - *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alarm'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/alarms/{id}:
+    get:
+      tags:
+      - Alarms
+      summary: Get alarm with timeline/context
+      operationId: getAlarm
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlarmDetail'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/alarms/{id}/ack:
+    post:
+      tags:
+      - Alarms
+      summary: Acknowledge active alarm
+      operationId: ackAlarm
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlarmAckRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alarm'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/alarms/{id}/close:
+    post:
+      tags:
+      - Alarms
+      summary: Close cleared alarm
+      operationId: closeAlarm
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alarm'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/events:
+    get:
+      tags:
+      - Events
+      summary: Search structured event history
+      operationId: listEvents
+      parameters:
+      - name: siteId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: elevatorId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: type
+        in: query
+        schema:
+          type: string
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - *id001
+      - *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/elevators/{id}/commands:
+    post:
+      tags:
+      - Commands
+      summary: Request supervisory command
+      operationId: requestElevatorCommand
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommandRequestCreate'
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandRequest'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/commands:
+    get:
+      tags:
+      - Commands
+      summary: Search command history
+      operationId: listCommands
+      parameters:
+      - name: elevatorId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: state
+        in: query
+        schema:
+          type: string
+      - *id001
+      - *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommandRequest'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/commands/{id}:
+    get:
+      tags:
+      - Commands
+      summary: Get command state and audit
+      operationId: getCommand
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandRequest'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/commands/{id}/approve:
+    post:
+      tags:
+      - Commands
+      summary: Approve/reject critical command
+      operationId: approveCommand
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommandApproval'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandRequest'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/commands/{id}/cancel:
+    post:
+      tags:
+      - Commands
+      summary: Cancel pending command
+      operationId: cancelCommand
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandRequest'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/maintenance/tickets:
+    get:
+      tags:
+      - Maintenance
+      summary: List/search maintenance tickets
+      operationId: listTickets
+      parameters:
+      - name: siteId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: elevatorId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: priority
+        in: query
+        schema:
+          type: string
+      - *id001
+      - *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Maintenance
+      summary: Create maintenance ticket
+      operationId: createTicket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/maintenance/tickets/{id}:
+    get:
+      tags:
+      - Maintenance
+      summary: Get ticket detail
+      operationId: getTicket
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+    patch:
+      tags:
+      - Maintenance
+      summary: Update ticket workflow
+      operationId: updateTicket
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketUpdate'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/maintenance/tickets/{id}/comments:
+    post:
+      tags:
+      - Maintenance
+      summary: Add ticket comment
+      operationId: addTicketComment
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - comment
+              properties:
+                comment:
+                  type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketComment'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/analytics/summary:
+    get:
+      tags:
+      - Analytics
+      summary: Get operations KPI summary
+      operationId: getAnalyticsSummary
+      parameters:
+      - name: siteId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsSummary'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/reports:
+    post:
+      tags:
+      - Reports
+      summary: Create asynchronous report export job
+      operationId: createReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportRequest'
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportJob'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/reports/{id}:
+    get:
+      tags:
+      - Reports
+      summary: Get report job/download metadata
+      operationId: getReport
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportJob'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/config/versions:
+    get:
+      tags:
+      - Configuration
+      summary: List configuration versions
+      operationId: listConfigVersions
+      parameters:
+      - name: scopeType
+        in: query
+        schema:
+          type: string
+      - name: scopeId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - *id001
+      - *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConfigVersion'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Configuration
+      summary: Create draft configuration version
+      operationId: createConfigVersion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigVersionCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigVersion'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/config/versions/{id}/validate:
+    post:
+      tags:
+      - Configuration
+      summary: Validate draft configuration
+      operationId: validateConfigVersion
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigValidation'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/config/versions/{id}/apply:
+    post:
+      tags:
+      - Configuration
+      summary: Apply validated configuration
+      operationId: applyConfigVersion
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigVersion'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/config/versions/{id}/rollback:
+    post:
+      tags:
+      - Configuration
+      summary: Rollback configuration
+      operationId: rollbackConfigVersion
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigVersion'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/users:
+    get:
+      tags:
+      - Administration
+      summary: List users
+      operationId: listUsers
+      parameters:
+      - *id001
+      - *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Administration
+      summary: Create local user
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/roles:
+    get:
+      tags:
+      - Administration
+      summary: List roles and permissions
+      operationId: listRoles
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/audit:
+    get:
+      tags:
+      - Administration
+      summary: Search immutable audit log
+      operationId: listAudit
+      parameters:
+      - name: actorUserId
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: action
+        in: query
+        schema:
+          type: string
+      - name: targetType
+        in: query
+        schema:
+          type: string
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - *id001
+      - *id002
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditLog'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/integrations/webhooks:
+    get:
+      tags:
+      - Integrations
+      summary: List webhook endpoints
+      operationId: listWebhooks
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WebhookEndpoint'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Integrations
+      summary: Create webhook endpoint
+      operationId: createWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEndpoint'
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/realtime/token:
+    post:
+      tags:
+      - Monitoring
+      summary: Issue short-lived realtime connection token
+      operationId: issueRealtimeToken
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expiresAt:
+                    type: string
+                    format: date-time
+        '400': *id003
+        '401': *id004
+        '403': *id005
+        '404': *id006
+        '409': *id007
+      security:
+      - bearerAuth: []
+  /api/v1/health:
+    get:
+      tags:
+      - System
+      summary: Service health
+      operationId: health
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+    Organization:
+      type: object
+      required:
+      - id
+      - code
+      - name
+      - timezone
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+        timezone:
+          type: string
+    Site:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+        timezone:
+          type: string
+        enabled:
+          type: boolean
+    Building:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        siteId:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+    ElevatorGroup:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        buildingId:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+    Elevator:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        groupId:
+          type: string
+          format: uuid
+        assetCode:
+          type: string
+        name:
+          type: string
+        manufacturer:
+          type: string
+        model:
+          type: string
+        enabled:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        etag:
+          type: string
+    ElevatorCreate:
+      type: object
+      required:
+      - groupId
+      - assetCode
+      - name
+      properties:
+        groupId:
+          type: string
+          format: uuid
+        assetCode:
+          type: string
+        name:
+          type: string
+        manufacturer:
+          type: string
+        model:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+    ElevatorUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        enabled:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        serviceStatus:
+          type: string
+    ElevatorStatus:
+      type: object
+      required:
+      - elevatorId
+      - eventTime
+      - connectionState
+      - direction
+      properties:
+        elevatorId:
+          type: string
+          format: uuid
+        eventTime:
+          type: string
+          format: date-time
+        receiveTime:
+          type: string
+          format: date-time
+        connectionState:
+          type: string
+          enum:
+          - HEALTHY
+          - NETWORK_OFFLINE
+          - GATEWAY_OFFLINE
+          - INTERFACE_NO_RXTX
+          - STALE
+          - UNKNOWN
+        floorRaw:
+          type:
+          - string
+          - 'null'
+        floorDisplay:
+          type:
+          - string
+          - 'null'
+        direction:
+          type: string
+          enum:
+          - UP
+          - DOWN
+          - IDLE
+          - UNKNOWN
+        operatingMode:
+          type:
+          - string
+          - 'null'
+        activeAlarmCount:
+          type: integer
+        statusPoints:
+          type: object
+          additionalProperties: true
+        dataQuality:
+          type: object
+          additionalProperties: true
+    TelemetryPoint:
+      type: object
+      properties:
+        eventTime:
+          type: string
+          format: date-time
+        metricCode:
+          type: string
+        value: {}
+        unit:
+          type: string
+        quality:
+          type: string
+    Gateway:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        siteId:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+        mode:
+          type: string
+        agentVersion:
+          type: string
+        adapterVersion:
+          type: string
+        lastSeenAt:
+          type: string
+          format: date-time
+        enabled:
+          type: boolean
+    GatewayDiagnostics:
+      type: object
+      properties:
+        gatewayId:
+          type: string
+          format: uuid
+        lastSeenAt:
+          type: string
+          format: date-time
+        rxPackets:
+          type: integer
+        txPackets:
+          type: integer
+        protocolErrors:
+          type: integer
+        reconnects:
+          type: integer
+        bufferDepth:
+          type: integer
+        clockOffsetMs:
+          type: integer
+    ConnectivityTest:
+      type: object
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        state:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+    Alarm:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        elevatorId:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+        severity:
+          type: string
+        state:
+          type: string
+        openedAt:
+          type: string
+          format: date-time
+        lastEventAt:
+          type: string
+          format: date-time
+        occurrenceCount:
+          type: integer
+    AlarmDetail:
+      allOf:
+      - $ref: '#/components/schemas/Alarm'
+      - type: object
+        properties:
+          acknowledgedAt:
+            type:
+            - string
+            - 'null'
+            format: date-time
+          acknowledgedBy:
+            type:
+            - string
+            - 'null'
+            format: uuid
+          ackComment:
+            type:
+            - string
+            - 'null'
+          clearedAt:
+            type:
+            - string
+            - 'null'
+            format: date-time
+          correlationId:
+            type:
+            - string
+            - 'null'
+            format: uuid
+          timeline:
+            type: array
+            items:
+              type: object
+              additionalProperties: true
+    AlarmAckRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventTime:
+          type: string
+          format: date-time
+        receiveTime:
+          type: string
+          format: date-time
+        siteId:
+          type: string
+          format: uuid
+        elevatorId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        eventType:
+          type: string
+        signalCode:
+          type:
+          - string
+          - 'null'
+        state:
+          type:
+          - string
+          - 'null'
+        value: {}
+        severity:
+          type:
+          - string
+          - 'null'
+        correlationId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+    CommandRequestCreate:
+      type: object
+      required:
+      - commandCode
+      - confirmationToken
+      properties:
+        commandCode:
+          type: string
+        parameters:
+          type: object
+          additionalProperties: true
+        reason:
+          type: string
+        confirmationToken:
+          type: string
+    CommandRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        elevatorId:
+          type: string
+          format: uuid
+        commandCode:
+          type: string
+        state:
+          type: string
+        requestedBy:
+          type: string
+          format: uuid
+        requestedAt:
+          type: string
+          format: date-time
+        sentAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        executedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        resultCode:
+          type:
+          - string
+          - 'null'
+        resultMessage:
+          type:
+          - string
+          - 'null'
+        correlationId:
+          type: string
+          format: uuid
+    CommandApproval:
+      type: object
+      required:
+      - decision
+      properties:
+        decision:
+          type: string
+          enum:
+          - APPROVED
+          - REJECTED
+        comment:
+          type: string
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ticketNo:
+          type: string
+        siteId:
+          type: string
+          format: uuid
+        elevatorId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        title:
+          type: string
+        status:
+          type: string
+        priority:
+          type: string
+        assigneeUserId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        openedAt:
+          type: string
+          format: date-time
+        slaDueAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        rootCause:
+          type:
+          - string
+          - 'null'
+        resolution:
+          type:
+          - string
+          - 'null'
+    TicketCreate:
+      type: object
+      required:
+      - siteId
+      - title
+      - priority
+      properties:
+        siteId:
+          type: string
+          format: uuid
+        elevatorId:
+          type: string
+          format: uuid
+        alarmIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        title:
+          type: string
+        problemDescription:
+          type: string
+        priority:
+          type: string
+          enum:
+          - P1
+          - P2
+          - P3
+          - P4
+        assigneeUserId:
+          type: string
+          format: uuid
+    TicketUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+        priority:
+          type: string
+        assigneeUserId:
+          type: string
+          format: uuid
+        rootCause:
+          type: string
+        resolution:
+          type: string
+        downtimeStart:
+          type: string
+          format: date-time
+        downtimeEnd:
+          type: string
+          format: date-time
+    TicketComment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        comment:
+          type: string
+        authorUserId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+    AnalyticsSummary:
+      type: object
+      properties:
+        availabilityPct:
+          type: number
+        activeAlarms:
+          type: integer
+        downtimeMinutes:
+          type: number
+        slaBreaches:
+          type: integer
+        mttrMinutes:
+          type: number
+        mtbfHours:
+          type: number
+        dataCompletenessPct:
+          type: number
+        topFaults:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    ReportRequest:
+      type: object
+      required:
+      - reportType
+      - format
+      - from
+      - to
+      properties:
+        reportType:
+          type: string
+        format:
+          type: string
+          enum:
+          - CSV
+          - XLSX
+          - PDF
+        siteId:
+          type: string
+          format: uuid
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        filters:
+          type: object
+          additionalProperties: true
+    ReportJob:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        downloadUrl:
+          type:
+          - string
+          - 'null'
+          format: uri
+        expiresAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ConfigVersion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scopeType:
+          type: string
+        scopeId:
+          type: string
+          format: uuid
+        schemaVersion:
+          type: string
+        versionNo:
+          type: integer
+        state:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        activatedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ConfigVersionCreate:
+      type: object
+      required:
+      - scopeType
+      - scopeId
+      - schemaVersion
+      - configuration
+      properties:
+        scopeType:
+          type: string
+        scopeId:
+          type: string
+          format: uuid
+        schemaVersion:
+          type: string
+        configuration:
+          type: object
+          additionalProperties: true
+    ConfigValidation:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        warnings:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        displayName:
+          type: string
+        email:
+          type: string
+          format: email
+        status:
+          type: string
+    UserCreate:
+      type: object
+      required:
+      - username
+      - displayName
+      properties:
+        username:
+          type: string
+        displayName:
+          type: string
+        email:
+          type: string
+          format: email
+        temporaryPassword:
+          type: string
+        roleAssignments:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    Role:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventTime:
+          type: string
+          format: date-time
+        actorType:
+          type: string
+        actorName:
+          type: string
+        action:
+          type: string
+        targetType:
+          type: string
+        targetId:
+          type: string
+        result:
+          type: string
+        correlationId:
+          type: string
+          format: uuid
+    WebhookEndpoint:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        url:
+          type: string
+          format: uri
+        eventTypes:
+          type: array
+          items:
+            type: string
+        enabled:
+          type: boolean
+    WebhookCreate:
+      type: object
+      required:
+      - name
+      - url
+      - eventTypes
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+          format: uri
+        secret:
+          type: string
+        eventTypes:
+          type: array
+          items:
+            type: string
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - OK
+          - DEGRADED
+          - DOWN
+        components:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: true
+        time:
+          type: string
+          format: date-time
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        correlationId:
+          type: string
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: Permission/scope denied
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: Resource not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Conflict:
+      description: State/version/idempotency conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+security:
+- bearerAuth: []

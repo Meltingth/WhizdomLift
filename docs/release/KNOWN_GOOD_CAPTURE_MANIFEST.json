@@ -1,0 +1,98 @@
+{
+  "docType": "KNOWN_GOOD_CAPTURE_MANIFEST",
+  "phaseId": "PRE-0",
+  "status": "DRAFT",
+  "preparedAt": "2026-09-13T21:00:00+07:00",
+  "note": "Describes the capture release that is running right now, deployed at commit 692acd1, and an immutable frozen copy of it for rollback. This manifest does not authorize any change to that deployment; it exists so Deliverable E rollback steps have a concrete target instead of an assumption.",
+
+  "deployedRepository": {
+    "path": "D:\\WhizdomLift",
+    "remote": "https://github.com/Meltingth/WhizdomLift.git",
+    "branch": "main",
+    "commit": "692acd123552e32a49bc5bd2de83a7c4995e5335",
+    "workingTreeClean": true,
+    "workingTreeExceptions": [
+      "capture_lift_1.log", "capture_lift_2.log", "capture_lift_3.log", "capture_lift_5.log",
+      "capture_launcher.log"
+    ]
+  },
+
+  "runtime": {
+    "pythonExecutable": "C:\\Python312\\python.exe",
+    "pythonVersion": "3.12.5",
+    "pythonExecutableSha256": "5aba6ec903f2e0e946459f98dc45c8129d3f22187f5adac00713d733191d3a3f"
+  },
+
+  "vendoredDependencies": {
+    "path": "D:\\WhizdomLift\\vendor",
+    "pyserial": {
+      "version": "3.5",
+      "installMethod": "pip install --target vendor pyserial",
+      "reason": "Scheduled-Task-started processes on this machine cannot import site-packages installed under the interactive user profile (CLAUDE.md 6.19 cause 2); vendoring under the repo makes the dependency reachable from any process context."
+    }
+  },
+
+  "codeFiles": [
+    { "path": "log_lift.py",              "sha256": "798f65c1f22d58195ed6be5ec2641185d9723e17dbdd5713da0e3f4adf6da014" },
+    { "path": "lift_decode.py",           "sha256": "8dce927bfa7441aa3ecf4bc1e15a138c11079f833f39bd31017785d79e6efb4c" },
+    { "path": "capture_status.py",        "sha256": "95bc4ac810bc927e9d2de81c212c3907bfcf2bbd86bd6e0ac39eb152bd434c69" },
+    { "path": "port_resolver.py",         "sha256": "d102f2ecc887863317c6586361aff3515d58745357ddf50a88e7db319c93d679" },
+    { "path": "scripts/start_captures.ps1",         "sha256": "72f658787aae5c1434eb187704c1f0c61abdfeef7d43e209e301c6479325b992" },
+    { "path": "scripts/install_capture_task.ps1",   "sha256": "789c8bbd43f57f0ae3744456e8f6101f54000ba148dfb805ca3474acec44221f" },
+    { "path": "requirements.txt",         "sha256": "09ce33b0d7ec43f5c431ced4584b339ae858ee7d30c69d13a2afc9585cdead69" }
+  ],
+
+  "fullFileManifest": {
+    "path": "D:\\WhizdomLift-releases\\capture-kg-692acd1\\SHA256SUMS",
+    "fileCount": 48,
+    "generatedFromCommit": "692acd1",
+    "note": "sha256sum of every file under the release copy (code, vendor/, scripts/), regenerated once to exclude a self-hash artifact from the first pass. All 48 entries verified OK against the copy at the time this manifest was written."
+  },
+
+  "immutableReleaseCopy": {
+    "path": "D:\\WhizdomLift-releases\\capture-kg-692acd1",
+    "inGitRepository": false,
+    "filesystemAttribute": "read-only (Windows attrib +R) applied to every file",
+    "verifiedIndependentImport": {
+      "method": "python -I (isolated mode) with PYTHONPATH unset, cwd outside the release directory, sys.path seeded with only the release directory, importing log_lift.py by explicit file path",
+      "result": "PASS - module loaded and resolved its 'import serial' from the release copy's own vendor/ (D:\\WhizdomLift-releases\\capture-kg-692acd1\\vendor\\serial\\__init__.py), not from the deployed WhizdomLift vendor/ and not from any agent/lms_* module (none exist to import - this predates any Deliverable B code)"
+    }
+  },
+
+  "scheduledTask": {
+    "name": "WhizdomLift captures",
+    "principal": { "userId": "Administrator", "logonType": "Interactive" },
+    "action": "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"D:\\WhizdomLift\\scripts\\start_captures.ps1\" -Lifts 1,2,3,5",
+    "triggers": ["AtLogOn", "Repeat every 15 minutes (PT15M)"],
+    "fullExportLocation": "D:\\WhizdomLift-releases\\capture-kg-692acd1\\task_export.xml.txt (private, local-only - not committed to any repository, see docs/preflight/DATA_CLASSIFICATION.md)",
+    "atCheckTime": { "lastRunResult": 0, "state": "Ready" }
+  },
+
+  "runningProcessesAtSnapshotTime": {
+    "note": "Task-Scheduler-started processes on this machine report an empty CommandLine over WMI (documented, not a new finding); identity confirmed instead via each lift's pid file and its still-growing capture log.",
+    "lifts": [
+      { "lift": 1, "pidFile": "capture_lift_1.pid" },
+      { "lift": 2, "pidFile": "capture_lift_2.pid" },
+      { "lift": 3, "pidFile": "capture_lift_3.pid" },
+      { "lift": 5, "pidFile": "capture_lift_5.pid" }
+    ],
+    "captureStatusAtStart": "ALL CAPTURING (python capture_status.py, run immediately before this round began)"
+  },
+
+  "stopCapability": {
+    "granularity": "GLOBAL_ONLY",
+    "mechanism": "A single file named STOP_CAPTURE in the working directory. Every running log_lift.py process checks for its existence before starting and on every loop iteration (log_lift.py lines 48, 71, 398-399, 451, read again this round). Creating it stops every logger sharing that directory - there is no way, in the code that is actually deployed right now, to stop one lift's logger without stopping all four.",
+    "conflictWithRevisedPlan": "Revised plan v2.0 requirement R04 / section E.2 step 2 explicitly forbids using this mechanism for a single-lift canary handover ('ห้ามใช้global STOP_CAPTURE หรือ Disable-ScheduledTask ที่หยุดทุกลิฟต์ตามขั้นตอนเดิม'). No per-lift stop mechanism exists yet.",
+    "consequence": "P2-CANARY (Gate G-C) is BLOCKED until a targeted single-lift stop is designed, implemented, and tested as part of Deliverable B / P1-OFFLINE. This PRE-0/A-DRAFT round does not attempt to build one - recording the gap is the PRE-0 deliverable, not closing it."
+  },
+
+  "rollbackProcedureSketch": {
+    "note": "Sketch only - the actual drill (plan E.3, test P07) happens in P2-TEST, not this round.",
+    "steps": [
+      "1. Stop whatever new process is running (Agent or otherwise) for the affected lift(s), verifying the COM port is actually released, not just that a pid file changed.",
+      "2. Start the known-good release from D:\\WhizdomLift-releases\\capture-kg-692acd1 directly (not the deployed D:\\WhizdomLift working tree, and not any branch with Deliverable B code merged into it), using its own vendor/ and the same Scheduled Task action pattern.",
+      "3. Verify capture resumes via capture_status.py and that the capture log for the affected lift shows a fresh '===== capture started' line.",
+      "4. Record the gap (elapsed time with no capture) honestly rather than only reporting the time after port-release confirmation, per plan E.3's warning against reporting a partial window as the full recovery time."
+    ]
+  }
+}
