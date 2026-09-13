@@ -1,0 +1,47 @@
+{
+  "planId": "LMS-NG-WHZ-REVISE-2.0",
+  "currentPhase": "PRE-0",
+  "status": "NOT_STARTED",
+  "machineRole": null,
+  "edgeCommit": null,
+  "platformCommit": null,
+  "contractVersion": null,
+  "contractHash": null,
+  "lastCompletedStep": null,
+  "testResults": [],
+  "blockedItems": [],
+  "nextAllowedAction": "Read-only PRE-0, then Deliverable A DRAFT; stop at G-A",
+  "gates": {
+    "G-A": {
+      "status": "PENDING",
+      "approvedBy": null,
+      "approvedAt": null,
+      "evidenceRef": null
+    },
+    "G-U": {
+      "status": "PENDING",
+      "approvedBy": null,
+      "approvedAt": null,
+      "evidenceRef": null
+    },
+    "G-C": {
+      "status": "PENDING",
+      "approvedBy": null,
+      "approvedAt": null,
+      "evidenceRef": null
+    },
+    "G-R": {
+      "status": "PENDING",
+      "approvedBy": null,
+      "approvedAt": null,
+      "evidenceRef": null
+    },
+    "G-H": {
+      "status": "PENDING",
+      "approvedBy": null,
+      "approvedAt": null,
+      "evidenceRef": null
+    }
+  },
+  "updatedAt": null
+}

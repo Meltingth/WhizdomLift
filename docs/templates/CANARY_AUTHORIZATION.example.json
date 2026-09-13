@@ -1,0 +1,22 @@
+{
+  "artifactType": "TEMPLATE_NOT_AUTHORIZATION",
+  "gateId": "G-C",
+  "status": "PENDING",
+  "approvedBy": null,
+  "approvedAt": null,
+  "evidenceRef": null,
+  "targetMachine": null,
+  "liftIds": [],
+  "sourceRelease": null,
+  "targetRelease": null,
+  "contractHash": null,
+  "windowStart": null,
+  "windowEnd": null,
+  "expiresAt": null,
+  "allowedActions": [],
+  "rollbackAllowed": false,
+  "maxGapSeconds": null,
+  "knownGoodReleaseManifestHash": null,
+  "ownershipPlanHash": null,
+  "note": "การมีไฟล์นี้ไม่ได้อนุมัติการทำงาน ผู้ดำเนินการต้องตรวจคำอนุมัติจริงจากเจ้าของและ scope ก่อน Execute"
+}

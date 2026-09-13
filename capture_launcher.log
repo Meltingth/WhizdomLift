@@ -234,3 +234,371 @@
 2026-09-13 09:34:01  lifts requested: 1, 2, 3, 5
 2026-09-13 09:34:01  already capturing: 1=11360 2=12660 3=11684 5=12100
 2026-09-13 09:34:02  nothing to start - every requested lift is already capturing
+2026-09-13 09:49:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 09:49:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 09:49:01  pyserial not importable as-is - trying the known locations
+2026-09-13 09:49:01    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 09:49:01  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 09:49:01  lifts requested: 1, 2, 3, 5
+2026-09-13 09:49:02  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 09:49:02  nothing to start - every requested lift is already capturing
+2026-09-13 10:03:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 10:03:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 10:03:59  pyserial not importable as-is - trying the known locations
+2026-09-13 10:04:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 10:04:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 10:04:00  lifts requested: 1, 2, 3, 5
+2026-09-13 10:04:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 10:04:00  nothing to start - every requested lift is already capturing
+2026-09-13 10:18:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 10:18:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 10:18:59  pyserial not importable as-is - trying the known locations
+2026-09-13 10:19:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 10:19:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 10:19:00  lifts requested: 1, 2, 3, 5
+2026-09-13 10:19:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 10:19:00  nothing to start - every requested lift is already capturing
+2026-09-13 10:33:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 10:33:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 10:33:59  pyserial not importable as-is - trying the known locations
+2026-09-13 10:34:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 10:34:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 10:34:00  lifts requested: 1, 2, 3, 5
+2026-09-13 10:34:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 10:34:00  nothing to start - every requested lift is already capturing
+2026-09-13 10:48:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 10:48:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 10:49:00  pyserial not importable as-is - trying the known locations
+2026-09-13 10:49:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 10:49:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 10:49:00  lifts requested: 1, 2, 3, 5
+2026-09-13 10:49:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 10:49:00  nothing to start - every requested lift is already capturing
+2026-09-13 11:03:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 11:03:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 11:04:00  pyserial not importable as-is - trying the known locations
+2026-09-13 11:04:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 11:04:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 11:04:00  lifts requested: 1, 2, 3, 5
+2026-09-13 11:04:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 11:04:00  nothing to start - every requested lift is already capturing
+2026-09-13 11:18:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 11:18:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 11:18:59  pyserial not importable as-is - trying the known locations
+2026-09-13 11:19:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 11:19:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 11:19:00  lifts requested: 1, 2, 3, 5
+2026-09-13 11:19:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 11:19:00  nothing to start - every requested lift is already capturing
+2026-09-13 11:33:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 11:33:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 11:34:00  pyserial not importable as-is - trying the known locations
+2026-09-13 11:34:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 11:34:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 11:34:00  lifts requested: 1, 2, 3, 5
+2026-09-13 11:34:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 11:34:00  nothing to start - every requested lift is already capturing
+2026-09-13 11:49:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 11:49:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 11:49:00  pyserial not importable as-is - trying the known locations
+2026-09-13 11:49:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 11:49:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 11:49:00  lifts requested: 1, 2, 3, 5
+2026-09-13 11:49:01  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 11:49:01  nothing to start - every requested lift is already capturing
+2026-09-13 12:04:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 12:04:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 12:04:00  pyserial not importable as-is - trying the known locations
+2026-09-13 12:04:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 12:04:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 12:04:00  lifts requested: 1, 2, 3, 5
+2026-09-13 12:04:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 12:04:00  nothing to start - every requested lift is already capturing
+2026-09-13 12:18:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 12:18:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 12:18:59  pyserial not importable as-is - trying the known locations
+2026-09-13 12:19:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 12:19:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 12:19:00  lifts requested: 1, 2, 3, 5
+2026-09-13 12:19:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 12:19:00  nothing to start - every requested lift is already capturing
+2026-09-13 12:33:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 12:33:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 12:34:00  pyserial not importable as-is - trying the known locations
+2026-09-13 12:34:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 12:34:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 12:34:00  lifts requested: 1, 2, 3, 5
+2026-09-13 12:34:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 12:34:00  nothing to start - every requested lift is already capturing
+2026-09-13 12:48:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 12:48:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 12:49:00  pyserial not importable as-is - trying the known locations
+2026-09-13 12:49:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 12:49:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 12:49:00  lifts requested: 1, 2, 3, 5
+2026-09-13 12:49:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 12:49:00  nothing to start - every requested lift is already capturing
+2026-09-13 13:03:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 13:03:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 13:04:00  pyserial not importable as-is - trying the known locations
+2026-09-13 13:04:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 13:04:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 13:04:00  lifts requested: 1, 2, 3, 5
+2026-09-13 13:04:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 13:04:00  nothing to start - every requested lift is already capturing
+2026-09-13 13:18:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 13:19:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 13:19:00  pyserial not importable as-is - trying the known locations
+2026-09-13 13:19:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 13:19:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 13:19:00  lifts requested: 1, 2, 3, 5
+2026-09-13 13:19:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 13:19:00  nothing to start - every requested lift is already capturing
+2026-09-13 13:33:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 13:33:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 13:34:00  pyserial not importable as-is - trying the known locations
+2026-09-13 13:34:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 13:34:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 13:34:00  lifts requested: 1, 2, 3, 5
+2026-09-13 13:34:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 13:34:00  nothing to start - every requested lift is already capturing
+2026-09-13 13:48:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 13:48:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 13:49:00  pyserial not importable as-is - trying the known locations
+2026-09-13 13:49:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 13:49:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 13:49:00  lifts requested: 1, 2, 3, 5
+2026-09-13 13:49:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 13:49:00  nothing to start - every requested lift is already capturing
+2026-09-13 14:03:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 14:04:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 14:04:00  pyserial not importable as-is - trying the known locations
+2026-09-13 14:04:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 14:04:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 14:04:00  lifts requested: 1, 2, 3, 5
+2026-09-13 14:04:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 14:04:00  nothing to start - every requested lift is already capturing
+2026-09-13 14:18:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 14:18:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 14:19:00  pyserial not importable as-is - trying the known locations
+2026-09-13 14:19:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 14:19:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 14:19:00  lifts requested: 1, 2, 3, 5
+2026-09-13 14:19:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 14:19:00  nothing to start - every requested lift is already capturing
+2026-09-13 14:34:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 14:34:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 14:34:00  pyserial not importable as-is - trying the known locations
+2026-09-13 14:34:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 14:34:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 14:34:00  lifts requested: 1, 2, 3, 5
+2026-09-13 14:34:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 14:34:00  nothing to start - every requested lift is already capturing
+2026-09-13 14:48:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 14:48:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 14:49:00  pyserial not importable as-is - trying the known locations
+2026-09-13 14:49:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 14:49:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 14:49:00  lifts requested: 1, 2, 3, 5
+2026-09-13 14:49:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 14:49:00  nothing to start - every requested lift is already capturing
+2026-09-13 15:03:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 15:04:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 15:04:00  pyserial not importable as-is - trying the known locations
+2026-09-13 15:04:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 15:04:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 15:04:00  lifts requested: 1, 2, 3, 5
+2026-09-13 15:04:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 15:04:00  nothing to start - every requested lift is already capturing
+2026-09-13 15:18:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 15:19:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 15:19:00  pyserial not importable as-is - trying the known locations
+2026-09-13 15:19:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 15:19:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 15:19:00  lifts requested: 1, 2, 3, 5
+2026-09-13 15:19:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 15:19:00  nothing to start - every requested lift is already capturing
+2026-09-13 15:33:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 15:33:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 15:34:00  pyserial not importable as-is - trying the known locations
+2026-09-13 15:34:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 15:34:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 15:34:00  lifts requested: 1, 2, 3, 5
+2026-09-13 15:34:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 15:34:00  nothing to start - every requested lift is already capturing
+2026-09-13 15:49:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 15:49:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 15:49:00  pyserial not importable as-is - trying the known locations
+2026-09-13 15:49:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 15:49:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 15:49:00  lifts requested: 1, 2, 3, 5
+2026-09-13 15:49:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 15:49:00  nothing to start - every requested lift is already capturing
+2026-09-13 16:03:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 16:04:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 16:04:00  pyserial not importable as-is - trying the known locations
+2026-09-13 16:04:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 16:04:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 16:04:00  lifts requested: 1, 2, 3, 5
+2026-09-13 16:04:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 16:04:00  nothing to start - every requested lift is already capturing
+2026-09-13 16:18:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 16:19:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 16:19:00  pyserial not importable as-is - trying the known locations
+2026-09-13 16:19:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 16:19:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 16:19:00  lifts requested: 1, 2, 3, 5
+2026-09-13 16:19:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 16:19:00  nothing to start - every requested lift is already capturing
+2026-09-13 16:33:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 16:33:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 16:34:00  pyserial not importable as-is - trying the known locations
+2026-09-13 16:34:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 16:34:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 16:34:00  lifts requested: 1, 2, 3, 5
+2026-09-13 16:34:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 16:34:00  nothing to start - every requested lift is already capturing
+2026-09-13 16:48:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 16:48:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 16:49:00  pyserial not importable as-is - trying the known locations
+2026-09-13 16:49:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 16:49:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 16:49:00  lifts requested: 1, 2, 3, 5
+2026-09-13 16:49:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 16:49:00  nothing to start - every requested lift is already capturing
+2026-09-13 17:04:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 17:04:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 17:04:00  pyserial not importable as-is - trying the known locations
+2026-09-13 17:04:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 17:04:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 17:04:00  lifts requested: 1, 2, 3, 5
+2026-09-13 17:04:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 17:04:00  nothing to start - every requested lift is already capturing
+2026-09-13 17:18:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 17:18:59  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 17:19:00  pyserial not importable as-is - trying the known locations
+2026-09-13 17:19:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 17:19:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 17:19:00  lifts requested: 1, 2, 3, 5
+2026-09-13 17:19:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 17:19:00  nothing to start - every requested lift is already capturing
+2026-09-13 17:34:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 17:34:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 17:34:00  pyserial not importable as-is - trying the known locations
+2026-09-13 17:34:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 17:34:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 17:34:00  lifts requested: 1, 2, 3, 5
+2026-09-13 17:34:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 17:34:00  nothing to start - every requested lift is already capturing
+2026-09-13 17:48:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 17:49:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 17:49:00  pyserial not importable as-is - trying the known locations
+2026-09-13 17:49:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 17:49:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 17:49:00  lifts requested: 1, 2, 3, 5
+2026-09-13 17:49:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 17:49:00  nothing to start - every requested lift is already capturing
+2026-09-13 18:04:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 18:04:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 18:04:00  pyserial not importable as-is - trying the known locations
+2026-09-13 18:04:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 18:04:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 18:04:00  lifts requested: 1, 2, 3, 5
+2026-09-13 18:04:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 18:04:01  nothing to start - every requested lift is already capturing
+2026-09-13 18:18:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 18:19:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 18:19:00  pyserial not importable as-is - trying the known locations
+2026-09-13 18:19:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 18:19:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 18:19:00  lifts requested: 1, 2, 3, 5
+2026-09-13 18:19:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 18:19:00  nothing to start - every requested lift is already capturing
+2026-09-13 18:34:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 18:34:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 18:34:00  pyserial not importable as-is - trying the known locations
+2026-09-13 18:34:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 18:34:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 18:34:00  lifts requested: 1, 2, 3, 5
+2026-09-13 18:34:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 18:34:00  nothing to start - every requested lift is already capturing
+2026-09-13 18:48:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 18:49:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 18:49:00  pyserial not importable as-is - trying the known locations
+2026-09-13 18:49:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 18:49:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 18:49:00  lifts requested: 1, 2, 3, 5
+2026-09-13 18:49:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 18:49:00  nothing to start - every requested lift is already capturing
+2026-09-13 19:04:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 19:04:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 19:04:00  pyserial not importable as-is - trying the known locations
+2026-09-13 19:04:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 19:04:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 19:04:00  lifts requested: 1, 2, 3, 5
+2026-09-13 19:04:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 19:04:00  nothing to start - every requested lift is already capturing
+2026-09-13 19:19:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 19:19:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 19:19:00  pyserial not importable as-is - trying the known locations
+2026-09-13 19:19:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 19:19:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 19:19:00  lifts requested: 1, 2, 3, 5
+2026-09-13 19:19:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 19:19:00  nothing to start - every requested lift is already capturing
+2026-09-13 19:34:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 19:34:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 19:34:00  pyserial not importable as-is - trying the known locations
+2026-09-13 19:34:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 19:34:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 19:34:00  lifts requested: 1, 2, 3, 5
+2026-09-13 19:34:01  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 19:34:01  nothing to start - every requested lift is already capturing
+2026-09-13 19:48:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 19:49:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 19:49:00  pyserial not importable as-is - trying the known locations
+2026-09-13 19:49:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 19:49:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 19:49:00  lifts requested: 1, 2, 3, 5
+2026-09-13 19:49:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 19:49:00  nothing to start - every requested lift is already capturing
+2026-09-13 20:03:59  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 20:04:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 20:04:00  pyserial not importable as-is - trying the known locations
+2026-09-13 20:04:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 20:04:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 20:04:00  lifts requested: 1, 2, 3, 5
+2026-09-13 20:04:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 20:04:00  nothing to start - every requested lift is already capturing
+2026-09-13 20:19:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 20:19:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 20:19:00  pyserial not importable as-is - trying the known locations
+2026-09-13 20:19:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 20:19:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 20:19:00  lifts requested: 1, 2, 3, 5
+2026-09-13 20:19:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 20:19:00  nothing to start - every requested lift is already capturing
+2026-09-13 20:34:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 20:34:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 20:34:00  pyserial not importable as-is - trying the known locations
+2026-09-13 20:34:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 20:34:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 20:34:00  lifts requested: 1, 2, 3, 5
+2026-09-13 20:34:01  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 20:34:01  nothing to start - every requested lift is already capturing
+2026-09-13 20:49:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 20:49:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 20:49:00  pyserial not importable as-is - trying the known locations
+2026-09-13 20:49:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 20:49:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 20:49:00  lifts requested: 1, 2, 3, 5
+2026-09-13 20:49:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 20:49:01  nothing to start - every requested lift is already capturing
+2026-09-13 21:04:00  --- run start | user=Administrator | interactive=True | session=1 | cwd=D:\WhizdomLift ---
+2026-09-13 21:04:00  python resolved to C:\Python312\python.exe (from PATH)
+2026-09-13 21:04:00  pyserial not importable as-is - trying the known locations
+2026-09-13 21:04:00    tried vendor (D:\WhizdomLift\vendor) -> works
+2026-09-13 21:04:00  pyserial import check passed via D:\WhizdomLift\vendor
+2026-09-13 21:04:00  lifts requested: 1, 2, 3, 5
+2026-09-13 21:04:00  already capturing: 1=11360 2=12660 3=11684 5=12100
+2026-09-13 21:04:00  nothing to start - every requested lift is already capturing

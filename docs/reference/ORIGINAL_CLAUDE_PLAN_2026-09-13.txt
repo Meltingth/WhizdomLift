@@ -1,0 +1,206 @@
+# LMS-NG backend + API — contracts → P1 gateway agent → P0/P2 server
+
+## Context
+
+The owner-approved plan `docs/backend/LMS_NG_Backend_Implementation_Plan_Whizdom_POC_v1_3.md` (1 Sep 2026) already fixes the architecture: a Python edge agent on the Gateway PC (this machine, `GW-WHZ-01`) publishes MQTT to a server stack on PC #2 (Dell, `LMS-SRV`): EMQX 5 · PostgreSQL 16 · Redis 7 · NestJS API · kiosk web. Phases P0–P6 with Definitions of Done live in `docs/workflow/PHASES.md`. This plan does not redesign that; it makes it real.
+
+What was missing (verified 13 Sep): the four contracts the plan calls "law" (MQTT Topic Spec v1, OpenAPI v1, PostgreSQL Schema v1, UI enums) and the `lms-ng` repo **do not exist anywhere** — not on this machine, not on GitHub. Writing them is the first deliverable and is what "design the API" concretely means.
+
+User decisions (13 Sep 2026):
+1. Contracts: write fresh from v1.3.
+2. Repo: server code + contracts in a new repo `lms-ng` (local `D:\lms-ng`, `git init` now; user creates `Meltingth/lms-ng` on GitHub later — push the moment a remote exists; "everything is public" rule stands). WhizdomLift stays the Edge repo.
+3. Server stack runs on the Dell (PC #2). This PC is the gateway: 7.8 GB RAM, Docker Desktop installed but not running, Node 16 — it must **not** run the stack. Server work is prepared here, executed on the Dell.
+4. Order: contracts → **STOP for the user's approval (DRAFT → APPROVED)** → P1 agent (WhizdomLift) → P0/P2 server (lms-ng).
+5. W-05 (Lift Service): code 47 displays as floor **44**; B1 and 1 as today; codes 3–46 on W-05 stay uncalibrated (`code N`) until the floor-20 stop test.
+6. P1 agent takes over capture for **all of 1, 2, 3, 5 and is prepared for 4** (Lift 4 out of service today).
+
+Reality drift the artifacts must absorb (plan is 12 days old): lifts 1/2/3/5 all run firmware 1.2.2 with `LIFT=n` beacons (Lift 3 no longer needs `--map`; keep it as a feature); Lift 1's VS2 is repaired; Lift 4 disabled; the building floor table is closed (CLAUDE.md §3.4: codes 4, 9, 11 are transit levels); W-05 tops at code 47; a powered-off board on one-way RS485 leaves no marker (gaps detected by time only); `board_ms` wraps at 2^32 and runs 0.78 % slow; real lifts have no door signal and no command path (DRY_RUN permanent).
+
+## Absolute guardrails (CLAUDE.md §4, §6, §13)
+- Never write to a serial port; never `OUTPUT` a pin; agent code path must contain no serial write.
+- No fake data on `W-01..W-05`; simulated traffic only on the `TEST` site (`S-0x`, tag `SIMULATED`) or Demo Mode (zero persistence).
+- Contracts change only with a human decision (CHANGELOG + version bump + CI guard + local edit hook).
+- `log_lift.py` CLI behaviour must stay byte-identical (golden test) — it is the capture lifeline.
+- Commit + push after every change (WhizdomLift); `lms-ng` pushes as soon as the remote exists.
+- Every tool must report what it did (§6.15/§6.19): status files, launcher log, loud refusals.
+
+---
+
+## Deliverable A — Contracts v1.0.0 (in `D:\lms-ng`, vendored into WhizdomLift)
+
+### A.1 Files
+```
+D:\lms-ng\contracts\VERSION                         "1.0.0"
+D:\lms-ng\contracts\README.md, CHANGELOG.md
+D:\lms-ng\contracts\mqtt\LMS_NG_MQTT_Topic_Specification_v1.yaml
+D:\lms-ng\contracts\mqtt\examples\{state.W-02, event.signal-change.floor.W-02, event.board-restart.W-02, heartbeat.GW-WHZ-01, birth.GW-WHZ-01, will.GW-WHZ-01, diagnostics-network.GW-WHZ-01}.json
+D:\lms-ng\contracts\json-schema\common\{ids,enums}.schema.json
+D:\lms-ng\contracts\json-schema\mqtt\{envelope,state,event,heartbeat,birth,will,diagnostics-network}.schema.json
+D:\lms-ng\contracts\json-schema\ws\{envelope,messages}.schema.json
+D:\lms-ng\contracts\openapi\LMS_NG_OpenAPI_v1.yaml
+D:\lms-ng\contracts\enums\ui-enums.yaml (+ ui-enums.schema.json)
+D:\lms-ng\database\migrations\0001_schema_v1.sql        (dbmate -- migrate:up/down)
+D:\lms-ng\database\seeds\0001_whz_site.sql, 0002_test_sim_site.sql, database\README.md
+D:\lms-ng\scripts\contracts-hash.ps1                    sha256 over contracts/** (sorted, LF, excl. SOURCE.md)
+D:\lms-ng\.github\workflows\contracts-vendor-check.yml  fails if WhizdomLift's vendored hash ≠ tag hash
+D:\WhizdomLift\contracts\**  (byte-identical copy) + contracts\SOURCE.md {repo, version, tag, commit, treeHash, syncedAt}
+D:\WhizdomLift\scripts\sync-contracts.ps1  (-Source <lms-ng path> | -Tag contracts-vX.Y.Z | -Check)
+D:\WhizdomLift\tests\test_contracts.py     (examples validate; dry-run output validates)
+```
+Every document header: `version, status: DRAFT|APPROVED, approvedBy, approvedAt`. Draft 2020-12 schemas, `additionalProperties:false`, payloads = `allOf[envelope, body]` + `unevaluatedProperties:false`. Timestamps RFC 3339 with offset.
+
+### A.2 MQTT Topic Spec v1 (plan §2.2 step 4)
+Root `lms/v1/{siteId}`, `siteId=whz`; simulator root `lms-sim/v1/test`; Demo Mode never publishes MQTT. `elevatorId` = `W-01..W-05` (natural key everywhere); `gatewayId` = `GW-WHZ-01`. Client id = gatewayId, MQTT 3.1.1/5, clean session, LWT registered at connect.
+
+| Topic | QoS | Retain | Cadence |
+|---|---|---|---|
+| `lms/v1/whz/telemetry/elevators/{elevatorId}/state` | 1 | yes | every accepted debounced change + board 60 s re-emit / boot baseline (`reemit:true`) |
+| `lms/v1/whz/events/elevators/{elevatorId}` | 1 | no | one per changed point per accepted line; lifecycle events |
+| `lms/v1/whz/status/gateways/{gatewayId}/birth` | 1 | yes | once per MQTT session |
+| `lms/v1/whz/status/gateways/{gatewayId}/heartbeat` | 0 | no | every 10 s |
+| `lms/v1/whz/status/gateways/{gatewayId}/will` | 1 | yes | LWT (`reason: LWT`) or clean stop (`SHUTDOWN`) |
+| `lms/v1/whz/diagnostics/gateways/{gatewayId}/network` | 0 | no | every 60 s |
+
+Envelope on every payload: `schemaVersion "1.0"`, `gatewayId`, `bootId` (uuid per agent process), `sequence` (int64, monotonic per bootId across all kinds), `eventTime` (PC wall clock at `\n` receipt), `source: live|replay`. Dedupe key `(gatewayId, bootId, sequence)`. Topic elevatorId must equal payload elevatorId.
+
+Payload bodies:
+- **state**: `elevatorId, floorRaw (string code — agent sends the code ONLY; backend resolves labels), direction UP|DOWN|IDLE|UNKNOWN, statusPoints {RUNNING, SAFETY_DEVICE (true=closed=normal)[, FIRE_OPERATION, FIRE_RETURN when enabled]}, operatingMode NORMAL|FIRE, dataQuality {rejectedLines, positionResolution 1|2, directionConflict}, raw {maskHex 13-hex, boardMs, port, firmware|null}, reemit`.
+- **event**: `elevatorId (null only for IDENTITY_REFUSED), eventType, data` with `eventType` ∈ `SIGNAL_CHANGE {point FLOOR|DIRECTION|RUNNING|SAFETY_DEVICE|FIRE_OPERATION|FIRE_RETURN, prev, next}`, `BOARD_RESTART {lastBoardMs, newBoardMs, reason CLOCK_BACKWARDS|FRESH_BOOT_UNDER_WALL}`, `IDENTITY_REBOUND {fromPort, toPort}`, `IDENTITY_REFUSED {port, claimed}`, `DATA_QUALITY {rejectedLines}`, `SENSOR_VS2_FAULT {state RAISED|CLEARED}`; optional `raw {maskHex, boardMs}`.
+- **heartbeat**: `sentAt, uptimeSec, agentVersion, lifts{ elevatorId → {rxtx OK|NO_RXTX, lastLineAt|null, lastLineAgeSec|null, port|null, firmware|null, bindState BOUND|SEARCHING|REFUSED_LIFT0|REFUSED_UNKNOWN|DUPLICATE|HELD_BY_LOGGER|FAILED|NOT_CONNECTED, rejectedLines, reconnects, boardRestarts, queueUnsent} }`. `NOT_CONNECTED` is the configured-but-absent state (Lift 4 today). **birth** = heartbeat + `config {siteId, topicRoot, allowlist {liftId→elevatorId}, mapOverrides, staleAfterSec 90, noRxtxAfterSec 90, heartbeatSec 10, diagnosticsSec 60, debounce{holdMs 60, settleMs 150}, capturePath, hostname, contractsVersion, contractsHash}`. **will**: `{schemaVersion, gatewayId, bootId, reason}`. **diagnostics/network**: per-lift counters `{linesTotal, rejectedLines, reconnects, boardRestarts, identityRebounds, lastLineAt}` + `outbox {unsent, oldestUnsentAgeSec, droppedRows, dbBytes}` + `mqtt {connected, reconnects, publishedTotal, publishFailures}`.
+- Thresholds (plan §5.2): rxtx `OK` while any line ≤ 75 s, `NO_RXTX` past 90 s; real lifts `staleAfterSec 90`, simulated 30; `GATEWAY_OFFLINE` = will or 3 missed 10 s heartbeats.
+
+### A.3 PostgreSQL Schema v1 (`0001_schema_v1.sql`)
+Schemas `core, telemetry, alarm, command, auth, audit`; `pgcrypto`.
+- `core.contract_version`, `core.site (site_id, name, timezone, topic_root)`, `core.building`, `core.floor_profile`, `core.floor_mapping (profile_id, code, label, is_landing, calibrated) PK(profile_id, code)`, `core.gateway (gateway_id, site_id, gateway_type REAL|SIM, stale_after_sec, heartbeat_sec, hostname)`, `core.elevator (elevator_id PK ^[A-Z]-\d{2}$, building_id, display_name, lift_id, enabled, tags text[], floor_profile_id, gateway_type, stale_after_sec, sort_order, UNIQUE(building_id, lift_id))`, `core.gateway_binding (elevator_id PK, gateway_id, device_address = lift_id)`, `core.signal_point (elevator_id, point, pin, enabled, active_low)`.
+- `telemetry.events` PARTITION BY RANGE (event_time), monthly partitions 2026-09…2027-02 + `telemetry.ensure_events_partition(date)`; columns `event_time, received_at, gateway_id, boot_id uuid, sequence bigint, elevator_id (null for IDENTITY_REFUSED), event_type, point, prev jsonb, next jsonb, data jsonb, raw jsonb, source`; `UNIQUE (event_time, gateway_id, boot_id, sequence)`; index `(elevator_id, event_time desc)`.
+- `telemetry.current_state (elevator_id PK, gateway_id, boot_id, sequence, event_time, received_at, source, floor_raw, direction, operating_mode, reemit, status_points jsonb, data_quality jsonb, payload jsonb)`. Monotonic upsert rule: same boot → higher `sequence` wins; different boot → `event_time >= current`.
+- `telemetry.gateway_status (gateway_id PK, kind birth|heartbeat|will, boot_id, sequence, sent_at, received_at, uptime_sec, agent_version, lifts jsonb, config jsonb, payload jsonb)`.
+- `alarm.definition (code, name, severity CRITICAL|MAJOR|MINOR|WARNING, enabled, scope_tags, params, auto_clear)`, `alarm.instance (ACTIVE|ACKED|CLEARED|CLOSED, muted, dedupe_key, unique open per dedupe_key)`, `alarm.action (ACK|MUTE|UNMUTE|CLOSE|COMMENT)`.
+- `command.request` (idempotency_key, mode DRY_RUN|LIVE, state REQUESTED→PENDING_APPROVAL→APPROVED→DISPATCHED→ACCEPTED→EXECUTED | REJECTED|FAILED|TIMED_OUT|CANCELLED, requested_by ≠ approved_by, interlock_snapshot).
+- `auth."user" (username, display_name, role operator|supervisor|technician|admin, password_hash argon2id)`, `audit.log (source live|demo)`.
+
+Seeds `0001_whz_site.sql` (plan §6 + CLAUDE.md §3.4): site `whz` "Whizdom The Forestias", building `WHZ` "The Whizdom", gateway `GW-WHZ-01` REAL/90; profile **`WHZ-PAX`** = the closed table exactly (1→B1, 2→1, 3→2, 4 transit, 5→3, 6→4, 7→5, 8→6, 9 transit, 10→8, 11 transit, 12..21 → 9..18, 22..46 → 20..44; 46 rows, 43 landings, a `DO $$ ASSERT` guard reproduces the 10 calibration anchors); profile **`WHZ-SERVICE`** = `1→B1, 2→1, 47→44` calibrated (user decision), codes 3–46 present uncalibrated; elevators `W-01..W-04` โดยสาร 01–04 (`lift_id` 1–4), `W-05` "Lift Service" (5, profile WHZ-SERVICE); `enabled=true` for W-01, W-02, W-03, W-05; **W-04 `enabled=false`** (renders `รอติดตั้ง`, excluded from KPI → `ออนไลน์ 4/4`); tags `{REAL}`; bindings device_address = lift_id; signal points D24–D29 VS2–VS7, D16 RUNNING, D17 SAFETY_DEVICE, D19 UP, D20 DN, FIRE_* `enabled=false`; alarm definitions per plan §5.3 (FIRE_* disabled, SAFETY_DEVICE_TRIP minOpenSec 2, SENSOR_VS2_FAULT, DATA_QUALITY, DOOR_OBSTRUCTION sim-only); users Joy/operator, Krit/supervisor, Beam/technician, Oat/admin (argon2 dev hashes, rotate in P6). `0002_test_sim_site.sql`: site `test`, `GW-SIM-01` SIM/30, `S-01..S-03` `{SIMULATED}`.
+Backend floor resolution: no row → UNCALIBRATED (`floorDisplay = code N`); `calibrated=false` → UNCALIBRATED; `is_landing=false` → TRANSIT; else LANDING with label.
+
+### A.4 OpenAPI v1 (base `/api/v1`, JWT bearer; GETs public on LAN while `AUTH_READ_PUBLIC=true`)
+`GET /health` (unprefixed) · `GET /elevators?siteId&embed=status` → `{items, kpi{online, commissioned}}` · `GET /elevators/{id}?embed=status` · `GET /elevators/{id}/events?from&to&limit&cursor` (P3) · `GET /gateways` · `GET /alarms?state&severity`, `POST /alarms/{id}/ack|mute|close` (P4) · `GET|POST /commands`, `POST /commands/{id}/approve|cancel` (P5) · `POST /demo/start|stop` (supervisor/admin, P4) · `POST /dev/scenario/{step}` (dev only) · `POST /auth/login`, `GET /auth/me` · `GET /metrics` (Prometheus).
+`ElevatorStatus` = `{elevatorId, displayName, enabled, tags, connectionState ONLINE|STALE|INTERFACE_NO_RXTX|GATEWAY_OFFLINE|PENDING_INSTALL|UNKNOWN, staleAfterSec, ageSec, eventTime, floorRaw, floorDisplay, floorKind LANDING|TRANSIT|UNCALIBRATED, direction, statusPoints (only keys that exist — no door for REAL), operatingMode, dataQuality, source live|replay|demo, gatewayId}`. `ElevatorEvent`, `GatewayStatus`, `Error {code, message, details, requestId}`.
+WS `/ws`: envelope `{v:1, type, source, siteId, msgId, eventTime, receivedAt, sentAt, data}`; server types `snapshot | elevator.state | elevator.status | gateway.status | source.changed | error`; client `subscribe {siteId} | beacon {msgId, receivedAt, renderedAt} | pong`.
+
+### A.5 UI enums (`ui-enums.yaml`)
+Keys: connectionState, freshnessBand (FRESH/AGING/STALE from staleAfterSec), direction, floorKind, operatingMode, statusPoint, dataQualityFlag, source, tag, rxtx, bindState, eventType, signalPoint, alarmCode, alarmSeverity, alarmState, alarmAction, commandType (PARKING, RELEASE_PARKING, RECALL_TO_FLOOR), commandMode, commandState, role, kpi, chrome. Fixed strings from the plan: `รอติดตั้ง`, `ศูนย์สัญญาณเตือน`, toast subline `หน้ารายการสัญญาณเตือน`, banner `โหมดสาธิต — ข้อมูลจำลองเพื่อการนำเสนอ`, button `สาธิต`, chip `DEMO`, `DRY RUN`, brand `The Whizdom`, `ออนไลน์ {online}/{commissioned}`, ground label `"1"`, uncalibrated `code N`.
+
+### A.6 Versioning, guard, approval checkpoint
+`contracts/VERSION` semver; wire `schemaVersion "1.0"`, WS `v:1`, `X-LMS-Contract-Version` header, `core.contract_version` row. Change control: CODEOWNERS on `contracts/**` + `database/migrations/000[12]_*`; CI `contracts-guard` (path changed ⇒ VERSION bumped + CHANGELOG entry + label); CI `contracts-validate` (ajv examples, enum parity, OpenAPI lint, `dbmate up` on scratch DB, vendored-hash check); local PreToolUse hook `scripts/guard-contracts.ps1` blocks edits under `contracts/` unless `LMS_CONTRACT_EDIT=1`; `/phase` pre-flight requires tag `contracts-vX.Y.Z` and all headers `APPROVED`.
+**Checkpoint:** after A is written (headers `DRAFT`) → hand the user a summary of the decisions + the files → user approves → flip to `APPROVED`, tag `contracts-v1.0.0`, `sync-contracts.ps1` into WhizdomLift, commit + push. **No P1 code before this.**
+
+---
+
+## Deliverable B — P1: `lms_gateway_agent.py` (WhizdomLift)
+
+### B.1 Architecture (one process, all lifts)
+```
+COM ports (CH340, RS485 one-way)  ── open_quiet(dtr=rts=False), read(1)+read(in_waiting), NEVER write
+        ▼ one supervised thread per configured lift (1,2,3,4,5)
+LiftReader → CaptureWriter (capture_lift_N.log, EXACT current format) → StreamDebouncer → lift_model → lms_payload → Publisher
+PortFinder: single lock-serialized identity scan; refuses LIFT=0, duplicates, ports held by a live logger pid
+HeartbeatThread 10 s: heartbeat (direct) · status.json · rxtx ticks     Publisher: OutboxQueue(sqlite) → MqttPublisher | JsonlPublisher | DryRunPublisher
+pid files: lms_gateway_agent.pid + capture_lift_<n>.pid per owned lift   stop: STOP_CAPTURE (refuse to start while present; never delete it) | STOP_AGENT
+```
+A lift that fails to bind (`NOT_CONNECTED`, `REFUSED_*`, `DUPLICATE`, `HELD_BY_LOGGER`) is reported in the heartbeat and retried on backoff; it never stops the others. Lift 4: configured (`W-04`), expected absent → `NOT_CONNECTED`, quiet retry every 5 min, no error spam; the moment its board announces `LIFT=4` it binds with zero config change.
+
+### B.2 Modules (new files unless noted)
+- `lift_reader.py` — extracted from `log_lift.py` (constants, `closed_pins`, `open_quiet`, `identify`, `candidate_ports`, `WrongBoard`, `listen_check(lift0_policy=warn|refuse)`, `reacquire(ports=None)`, `RestartDetector` (the three rules + 2^32 wrap), `parse_st` (13-nibble length check), `CaptureFormat` string builders, record dataclasses `Opened/Beacon/Sample/Reject/Restart/Wrapped/WrongBoardSeen/LinkLost/Searching/Rebound/BindFailed`, `LiftReader(...).records()`, `PortFinder`). Zero `write(` calls. Fixes the **read bunching**: today `ser.read(512)` with `timeout=0.5` (log_lift.py:484) returns only when 512 bytes arrive or 500 ms elapse, so wall stamps are up to 500 ms late and bunched (2,665 identical-stamp pairs in `capture_lift_2.log`) — new loop `read(1)` then `read(in_waiting)`, stamp at `\n`. Honors `LMS_AGENT_FORBID_SERIAL=1` (tests).
+- `log_lift.py` (modify) — thin CLI over `LiftReader`/`CaptureFormat`; keeps argv, `check_owner`, `arm/_set_mode` (USB path stays here), pid file, prints. Pre-refactor copy frozen at `tests/phase-P1/fixtures/log_lift_before.py` for the golden test.
+- `lift_decode.py` (additive) — `TRANSIT_CODES = {4, 9, 11}`, `CODE_TO_LABEL_FULL` (closed table; import-time assert reproduces the 10 anchors). Used only for dry-run readability and tests; the contract payload carries `floorRaw` only.
+- `stream_debounce.py` — `StreamDebouncer(hold_ms=60, settle_ms=150)`: per-pin hold timers + composite settle timer driven by board time (idle `tick` extrapolates from wall clock); `feed/tick/flush/reset`; `debounce_stream()` batch wrapper. Must equal `lift_decode.debounce_pins` state-for-state on the full `capture_lift_2.log`.
+- `lift_model.py` — profiles (`passenger` max 46, `service` max 47), `decode(mask)`, `derive_direction` (both closed → `UNKNOWN` + `directionConflict`; >2 s rule is the server's), `Vs2FaultDetector` (raise after 8 consecutive code changes with bit-0 silent, clear after 4 toggling changes; sets `positionResolution`), `RxtxTracker(75/90)`, `normalize() → LiftState`, `diff()`.
+- `lms_payload.py` — the only file that knows topics and field names: `topics()`, `envelope()`, `build_state/event/birth/heartbeat/will/diagnostics()`, `SchemaSet.load("contracts/json-schema")` (jsonschema Draft 2020-12 + `referencing` registry), `validate()`.
+- `lms_publisher.py` — `OutboxQueue` (sqlite WAL; `outbox(id, boot_id, sequence, kind, lift, topic, payload, qos, retain, event_time, created_wall, sent_wall, attempts, UNIQUE(boot_id, sequence))`; insert-before-publish, mark-sent on PUBACK, drain oldest-first, prune sent > 24 h, cap unsent with loud `droppedRows`), `MqttPublisher` (paho-mqtt 2.x `CallbackAPIVersion.VERSION2`, TLS, LWT, in-flight window 20), `JsonlPublisher` (rolling files, **used in P1 — no broker yet, no sqlite growth**), `DryRunPublisher` (stdout `TOPIC\tJSON`), `read_credential("LMS-NG-MQTT")` via Windows Credential Manager (`CredReadW`) with env fallback.
+- `capture_replay.py` — parses the decorated on-disk log (headers, data lines, all marker forms incl. both `board restarted` formats, FW lines without `LIFT=`); derives dates from `===== capture started YYYY-MM-DD` and rolls midnight by a >12 h backwards step (§6.18); re-runs `RestartDetector`; feeds the same `LiftPipeline` as live.
+- `lms_gateway_agent.py` — CLI `--config lms_gateway_agent.json --lifts 1,2,3,4,5 --map COMx=n --publisher mqtt|jsonl|dry-run --replay <file> [--speed N|--as-fast-as-possible] --validate --broker host:port --quiet-heartbeat`; `LiftPipeline.handle(record)`; status file `lms_gateway_agent.status.json` (bootId, per-lift bindState/port/fw/rxtx/lastLineAge/rejected/restarts/published, queue stats); rotating `lms_gateway_agent.log`; refuses to start while `STOP_CAPTURE` exists; skips a lift whose `capture_lift_<n>.pid` names another live python (`HELD_BY_LOGGER`); replay never publishes to the live topic root and uses log-derived `eventTime`; replay exit 1 if `rejected > 0` or any schema failure.
+- `lms_gateway_agent.json` — allowlist `{1:W-01, 2:W-02, 3:W-03, 4:W-04, 5:W-05}`, profiles (`W-05: service`), broker (host/port/TLS/credential target — no secrets), thresholds, capture path.
+- `tools/agent_health.py --wait N --lifts …` — reads status.json; exit 0 when every lift published within N s.
+- `capture_status.py` (additive) — reads status.json → `CAPTURING (agent)` with rxtx/queue instead of the "hides its command line" note.
+- `scripts/start_captures.ps1` (modify) — `-Mode agent|logger` (default `logger` unchanged). Agent mode: ensure `lms_gateway_agent.pid` alive else start the agent; if the agent fails to start (import/config), fall back to logger mode and log it loudly. Pid bridge both ways (agent owns `capture_lift_<n>.pid`; launcher leaves live pids alone).
+- `scripts/install_capture_task.ps1` — add `-Mode agent` so the Scheduled Task action becomes `start_captures.ps1 -Mode agent -Lifts 1,2,3,4,5` (re-register at the end of P1 after the live proof).
+- `scripts/deploy-phase.ps1`, `scripts/test-phase.ps1`, `.claude/commands/phase.md` — no-`nssm` fallback (`STOP_AGENT` → wait → `start_captures.ps1 -Mode agent` → `agent_health.py --wait 90`); `pwsh` → `powershell` fallback; pre-flight "clean tree except `capture_lift_*.log`, `capture_launcher.log`".
+- `vendor/` — `pip install --target vendor paho-mqtt jsonschema referencing` (committed, public repo; same reason as pyserial, §6.19); `requirements.txt` updated. `.gitignore` adds `lms_gateway_agent.pid`, `STOP_AGENT`, `lms_outbox.sqlite*`, `lms_gateway_agent.status.json`, `lms_gateway_agent.log*` (harmful/regenerated on another machine).
+- Docs: CLAUDE.md §5 rows, new §6.20 (read-bunching), §9.6 note; LIFT_STATUS.md swap window (§9.7 rule); `docs/workflow/plans/phase-P1.md`, `docs/workflow/logs/phase-P1.md`.
+
+### B.3 Steps (in order)
+1. Vendor deps; freeze fixtures (`tests/phase-P1/fixtures/lift2_slice.log` = first ~1,100 lines of `capture_lift_2.log` + synthetic midnight section; `log_lift_before.py`).
+2. `lift_reader.py`; rewire `log_lift.py`; run legacy tests; golden test T1.
+3. `lift_decode.py` additions; `stream_debounce.py` + T3 equivalence.
+4. `lift_model.py` + T4–T6; `lms_payload.py` + T7; `lms_publisher.py` + T8; `capture_replay.py` + T9.
+5. `lms_gateway_agent.py` + config + T10–T12; `tools/agent_health.py`; `capture_status.py`; launcher/task/kit script changes + T13; `tests/phase-P1/run.ps1`.
+6. **Live cutover (all lifts)**: `Disable-ScheduledTask 'WhizdomLift captures'` → `STOP_CAPTURE` → wait until all four `capture_lift_*.pid` vanish (`===== capture stopped` in each log; investigate if any survives 30 s) → remove `STOP_CAPTURE` → start agent `--lifts 1,2,3,4,5 --publisher jsonl --out lms_agent_lift.jsonl` → verify binds (1/2/3/5 `BOUND`, 4 `NOT_CONNECTED`), `===== capture started … ===` appended in each log → run `start_captures.ps1` (logger mode) once: must report every lift held by a live pid and `nothing to start` → re-register the task with `-Mode agent` → `Enable-ScheduledTask` → next 15-min run says `agent alive, nothing to start`. Rollback: `STOP_AGENT` → task/launcher in logger mode restores `log_lift.py` within 15 min.
+7. Evidence + docs + commit + push (verify `local == origin/main`).
+
+### B.4 Tests (`tests/phase-P1/`, plain scripts + injected fakes; no port opened; `run.ps1` exits non-zero on any failure)
+T1 golden: new `log_lift.py` output byte-identical to the frozen copy over 6 FakeSerial scenarios · T2 legacy suites still pass (+2 capture_status agent cases) · T3 `debounce_stream == debounce_pins` on all rows of `capture_lift_2.log` + 1,000 random glitch corpora + live-style tick driving · T4 decode/labels/direction table, W-05 code 47, transit codes · T5 VS2 fault raise at exactly 8, clear at 4, single odd glitch does not clear · T6 rxtx hysteresis (OK ≤ 75, NO_RXTX > 90) · T7 every produced message validates against `contracts/json-schema`, sequence strictly increasing · T8 outbox drain order, original eventTime, re-send after crash with new bootId, cap + `droppedRows`, heartbeat never queued, credential reader · T9 replay: dates, midnight roll, both restart marker formats, `rejected == 0` on the full fixture · T10 black-box CLI: replay + `--validate` exits 0; injected 12-nibble line → `rejected 1`, DATA_QUALITY event, exit 1 · T11 no serial writes (static grep + FakeSerial whose `write` raises; dtr/rts False before open) · T12 pipeline: dual-write bytes, BOARD_RESTART + debouncer reset, IDENTITY_REBOUND, LIFT=0 → `REFUSED_LIFT0` with zero capture lines, held pid → `HELD_BY_LOGGER`, Lift 4 → `NOT_CONNECTED` without error spam · T13 launcher pid bridge (PowerShell) · T14 post-cutover `live_equivalence.py` (batch `debounce_pins` over the agent-written session == the JSONL state sequence).
+`run.ps1` ends with the DoD replay: `python lms_gateway_agent.py --replay capture_lift_2.log --publisher dry-run --as-fast-as-possible --validate --lifts 2` → exit 0, `rejected 0`.
+
+---
+
+## Deliverable C — P0/P2 server (`D:\lms-ng`, executed on the Dell)
+
+### C.1 Layout (pnpm 10 workspaces, TypeScript, **Node 22 LTS** — Node 20 is EOL)
+```
+apps/api (NestJS 11, Kysely, pino, ajv)   apps/web (Vite + React + TS kiosk, nginx: static + /api /ws /health proxy → one origin)
+tools/simulator (TEST site engine; POST /dev/scenario/{step})   tools/replay (wraps the P1 agent replay)
+packages/contracts (schema re-exports + generated TS types)   packages/test-fixtures (sim towers, capture_lift_2 sample)
+contracts/ database/{migrations,seeds,schema.sql} infra/{emqx,tls,firewall,ntp} scripts/ .claude/ (kit copy) docs/{workflow,backend,design}
+firmware/rs485-gateway = git submodule → WhizdomLift    tests/phase-P0 tests/phase-P2   .github/workflows/ci.yml
+```
+`.gitattributes` (`* text=auto eol=lf`, `*.ps1 eol=crlf`) — CRLF kills container entrypoints. Create paths with `New-Item` (no brace expansion in PowerShell — see the stray `{.claude…}` dir in WhizdomLift).
+
+### C.2 docker-compose.yml
+`emqx:5.8` (1883 dev, 8883 TLS, 18083 loopback; HOCON config + `acl.conf` + `users.csv`; ACL: `gw-whz-01` publishes only `lms/v1/whz/+/elevators/{allowlisted}/#` and its own `gateways/GW-WHZ-01/#`; `sim` only `S-0x`/`GW-SIM-01`; `api` subscribes `lms/v1/whz/#`; anonymous denied) · `postgres:16` (volume, healthcheck, TZ Asia/Bangkok) · `redis:7` (ephemeral) · `migrate` (dbmate one-shot `--wait up`) · `seed` (profile `seed`) · `api` (multi-stage node:22, `/health` healthcheck, `depends_on` healthy) · `web` (nginx) · `simulator`/`replay` (profiles `demo`/`test`). `.env.example` with the variable table; `.env` git-ignored (P6: generated from Credential Manager).
+`/health` → 200 `{status, checks{db, redis, mqtt (30 s boot grace), migrations, liveness lastTickAt}}`, 503 when db/redis/mqtt down or the liveness tick is > 30 s old.
+
+### C.3 API modules
+Config (zod) · Db (Kysely + `kysely-codegen` committed types, CI drift check) · Redis (ioredis cmd + sub) · Mqtt (mqtt.js, `lms/v1/whz/#` QoS 1) · Contracts (ajv strict compiles every schema at boot; `TopicRouter`) · **Ingestion** (route → validate → binding check (`core.gateway_binding`) → handler → fan-out; `telemetry.events` insert `ON CONFLICT DO NOTHING` = duplicate; `current_state` monotonic upsert (A.3) = `applied|ignored_older`; Redis `PUBLISH rt:elevators`; `PartitionKeeper`; counter `lms_mqtt_messages_total{kind,result}`) · **Liveness** (pure evaluator, priority: `!enabled → PENDING_INSTALL` › gateway will / 3×10 s missed → `GATEWAY_OFFLINE` › heartbeat `rxtx NO_RXTX` or `lastLineAt` > staleAfterSec → `INTERFACE_NO_RXTX` › `event_time` > staleAfterSec → `STALE` › `ONLINE`; 5 s tick under Redis lock; transitions → events + `elevator.status`; tick log line every 5 s) · Elevators (REST + `StatusAssembler` incl. floor resolution) · Realtime (raw `ws` via `@nestjs/platform-ws`; snapshot on subscribe; ping/pong; beacon intake; `source` from `lms:source`) · Monitoring (`/health`, `/metrics` prom-client histograms `mqtt_to_applied`, `applied_to_ws`, `event_to_ws`, `event_to_receive`, `event_to_render`; ring buffer `lms:latency:samples`; `/metrics/latency/samples`, `/metrics/latency/clock`) · Demo stub (`lms:source` flip + one audit row) · Auth (JWT HS256, argon2 users; reads public on LAN via `AUTH_READ_PUBLIC`) · OpenApi (serves the contract file verbatim at `/api/v1/openapi.yaml` + Swagger UI).
+Redis: `rt:elevators`, `rt:gateways`, `lms:status:{elevatorId}`, `lms:gw:{gatewayId}`, `lms:source`, `lms:lock:liveness`, `lms:seq:server`, `lms:latency:samples`, `lms:clock:{gatewayId}`.
+
+### C.4 Web (frame 02 minimal)
+WS client (reconnect ≤ 5 s, snapshot, `eventTime` guard, beacon), store, `Dashboard`: wordmark "The Whizdom", KPI `ออนไลน์ n/m` over enabled lifts, five `ElevatorCard`s (floor label or mono `code N`, direction, RUNNING chip, connection badge incl. `รอติดตั้ง`, freshness `↻ Ns` vs `staleAfterSec`, **no door line for REAL lifts**, DEMO banner bound to `source`), `ElevatorDetail` (status points + last 50 events), `?siteId=` override, 1920×1080 kiosk CSS; `scripts/kiosk.ps1`.
+
+### C.5 Latency proof (P2 DoD ≤ 2 s P95)
+t0 `eventTime` → t1 api receipt → t2 DB applied → t3 `ws.send` → t4 browser receive → t5 rendered (`requestAnimationFrame`); browser beacons sampled 1-in-10 (`?beacon=all` for tests); `tests/phase-P2/latency.ps1 -Source sim|live -Count 200` refuses to certify if GW↔SRV clock offset > 200 ms, computes P50/P95/P99 from the ring buffer, asserts the histogram grew, writes `docs/workflow/logs/latency-P2-<ts>.json`, exit 1 if P95 > 2000 ms.
+
+### C.6 Drills as tests (TEST site only)
+`drill-no-rxtx.ps1` (heartbeat flips `S-02` to `NO_RXTX` at T0+75 s → `INTERFACE_NO_RXTX` ≤ 90 s; will → `GATEWAY_OFFLINE` ≤ 6 s; heartbeat gap → ≤ 35 s) · `drill-replay.ps1` (stop api+emqx 60 s while the simulator's backlog mode keeps original `eventTime`; after restart rows exist inside the gap, order by `event_time`, re-publish → all `duplicate`, older state → `ignored_older`) · `drill-live-dongle.ps1` (on site; operator marks the pull with `scripts/mark.ps1` at their own pace — never a countdown, CLAUDE.md §10).
+
+### C.7 P0 then P2 steps
+P0: repo skeleton (submodule shallow) → root tooling → workflow kit copy (+ `scripts/validate-agents.mjs`; fixed `deploy-phase.ps1` with a real `while` loop and a deploy log; host-agnostic `test-phase.ps1`) → contracts + migrations from A → infra (emqx conf/acl/users, TLS scripts, firewall/ntp READMEs) → compose + `.env.example` → api scaffold (Config/Db/Redis/Mqtt/Contracts/Monitoring/OpenApi, Dockerfile, codegen) → web scaffold + nginx → packages + tool placeholders → seeds + scripts → CI (`build` + `smoke`: compose up, `/health`, seed, P0 tests, codegen drift, agents validate) → `tests/phase-P0/run.ps1` → `docs/workflow/DELL_SETUP.md` → run `/phase P0` on the Dell.
+P2: contracts package + `TopicRouter` → repositories + upsert → Ingestion (+ unit tests) → Liveness → Elevators REST (+ OpenAPI response validation) → Realtime → Monitoring latency → Auth + Demo stub → web frame 02/03 → simulator (burst/backlog modes, refuses non-SIMULATED ids) + replay wrapper → `tests/phase-P2` (vitest black-box + drills + latency + `run.ps1`) → kiosk → `/phase P2` on the Dell with the real agent publishing.
+
+### C.8 Dell checklist (`docs/workflow/DELL_SETUP.md`, closes open item O4)
+`systeminfo` ≥ 16 GB / ≥ 100 GB SSD / virtualization on; hostname `LMS-SRV`, static IP `.10`, TZ Asia/Bangkok, never sleep · WSL2 + `.wslconfig memory=8GB` · Docker Desktop (WSL2 backend, start at login) · Git, PowerShell 7, Chrome, Node 22 LTS + `corepack enable` · Claude Code CLI · clone `--recurse-submodules` → `.env` → `pnpm install` → `deploy-phase.ps1 -Phase P0` → `tests/phase-P0/run.ps1` · W32Time as LAN NTP now (the latency DoD depends on it; GW syncs to SRV) · firewall: 1883 from GW IP only (8883 in P6), 8080 LAN, 18083/5432/6379 loopback.
+
+Deferred: P3 history/explorer/partition automation/DATA_QUALITY alarm; P4 alarm engine, Alarm Center, Demo engine + scenario v2; P5 command console DRY_RUN; P6 TLS mandatory, credentials from Credential Manager, backups, NSSM/kiosk cold-boot runbook, rehearsal.
+
+---
+
+## Execution order and checkpoints
+1. `git init D:\lms-ng`; write Deliverable A (all headers `DRAFT`); `scripts/contracts-hash.ps1`; vendored copy + `SOURCE.md` + `sync-contracts.ps1` + `tests/test_contracts.py` in WhizdomLift (commit + push WhizdomLift). **STOP — present the contracts and the decision list to the user for approval.**
+2. On approval: flip headers → `APPROVED`, tag `contracts-v1.0.0` in lms-ng, re-sync, commit + push. When the user creates `Meltingth/lms-ng`, add the remote and push (everything public).
+3. Deliverable B via the WhizdomLift phase loop (`/phase P1`), including the live cutover of all lifts and the Scheduled Task switch to agent mode.
+4. Deliverable C prepared in `D:\lms-ng` (P0 files + P2 code written here, compiled/tested only where possible without Docker — unit tests and schema compilation), then executed on the Dell (`/phase P0`, `/phase P2`) after `DELL_SETUP.md` step 1 confirms the spec.
+
+## Verification
+- **A:** every example validates against its schema (ajv + jsonschema); `dbmate up` on a scratch Postgres (Docker on the Dell, or `docker` here if the daemon is started for that one check); seed `DO $$ ASSERT` guards pass (46 rows / 43 landings / 10 anchors); OpenAPI lints; `sync-contracts.ps1 -Check` reports identical hashes.
+- **B (P1 DoD verbatim):** "Replay of `capture_lift_2.log` produces valid `state`/`events` messages (schema-validated); 0 rejected lines; live Lift 2 publishes on COM port; no serial writes (rs485_check discipline)" — `tests/phase-P1/run.ps1` green (T1–T13), then the live cutover with `capture_status.py` = `ALL CAPTURING (agent)` for 1/2/3/5 and `NOT_CONNECTED` for 4, `agent_health.py --wait 90` OK, T14 live equivalence identical, JSONL shows FLOOR/DIRECTION/RUNNING events after a real trip, launcher log `nothing to start` on the next watchdog tick.
+- **C (P0/P2 DoD verbatim):** P0 "`docker compose up` green; `/health` 200; migrations apply on a fresh DB; `claude plugin validate .claude/agents` clean"; P2 "Lift 1+2 floor changes reach frame 02 in <= 2 s P95 (latency histogram exported); dongle pull -> INTERFACE_NO_RXTX <= 90 s; stack restart -> sqlite backlog replays with original eventTime" — `tests/phase-P0/run.ps1`, `tests/phase-P2/run.ps1` (latency + drills) on the Dell with the P1 agent switched to `--publisher mqtt`.
+
+## Decisions taken in this plan (state them to the user; change on request)
+- Backend resolves floor labels; the agent publishes `floorRaw` only (single owner: `core.floor_mapping`).
+- W-05 profile: `1→B1, 2→1, 47→44` calibrated (user), 3–46 `code N` until the floor-20/44 stop test.
+- One agent process for all lifts (thread isolation), Lift 4 pre-configured as `NOT_CONNECTED`; P1 publisher = JSONL (no broker yet); switch to MQTT in P2.
+- `log_lift.py` refactored onto `lift_reader.py` under a byte-identical golden test; the read-bunching fix applies to both.
+- Server: Node 22, Vite+React behind nginx, raw `ws`, JWT with public reads on LAN, EMQX plain 1883 until P6, simulator ships in P2 for tests only (TEST site).
+- Workflow-kit fixes in both repos: `pwsh`/`nssm` fallbacks, `deploy-phase.ps1` loop bug, "clean tree except live logs".
+
+## Open items carried forward
+O1 demo date · O2 Lift 4 install date (agent is ready for it) · O3 FIRE / FIRE RETURN activation test · O4 Dell spec (checklist step 1) · W-05 middle landing (floor-20 stop test) · `Meltingth/lms-ng` creation on GitHub (user).

@@ -1,0 +1,190 @@
+specVersion: '1.0'
+protocol:
+  mqttVersion: 5.0 preferred; 3.1.1 compatible
+  transport: TLS/TCP
+  defaultPort: 8883
+  clientIdPattern: gw-{gatewayId}
+  keepAliveSeconds: 30
+  sessionExpirySeconds: 86400
+topicRoot: lms/v1/{organizationId}/{siteId}/{gatewayId}
+identityAndAcl:
+  gatewayPublish:
+  - status/#
+  - telemetry/#
+  - events/#
+  - commands/+/result
+  - config/reported
+  - diagnostics/#
+  gatewaySubscribe:
+  - commands/+/request
+  - config/desired
+  backendPublish:
+  - commands/+/request
+  - config/desired
+  backendSubscribe:
+  - +/+/+/status/#
+  - +/+/+/telemetry/#
+  - +/+/+/events/#
+  - +/+/+/commands/+/result
+  - +/+/+/config/reported
+  - +/+/+/diagnostics/#
+messageEnvelope:
+  required:
+  - schemaVersion
+  - messageId
+  - eventTime
+  - gatewayId
+  - sequence
+  - payload
+  example:
+    schemaVersion: '1.0'
+    messageId: 4b46227f-4e53-4d5c-b940-799f2a547630
+    eventTime: '2026-07-26T12:34:56.123Z'
+    gatewayId: <uuid>
+    sequence: 18442
+    payload: {}
+topics:
+- topic: '.../status/birth'
+  direction: gateway->broker
+  qos: 1
+  retain: true
+  purpose: Gateway online/birth and capability announcement
+  payload:
+    online: true
+    agentVersion: 1.0.0
+    adapterVersion: legacy-ifbox-0.3
+    bootId: uuid
+    capabilities:
+    - telemetry
+    - commands
+    - buffering
+- topic: '.../status/heartbeat'
+  direction: gateway->broker
+  qos: 0
+  retain: false
+  purpose: Liveness, clock and queue health
+  intervalSeconds: 10
+  payload:
+    online: true
+    uptimeSec: 3210
+    bufferDepth: 0
+    clockOffsetMs: 4
+    cpuPct: 12.5
+    diskFreePct: 78.2
+- topic: '.../status/will'
+  direction: broker LWT
+  qos: 1
+  retain: true
+  purpose: Unexpected disconnect marker
+  payload:
+    online: false
+    reason: LWT
+- topic: '.../telemetry/elevators/{elevatorId}/state'
+  direction: gateway->broker
+  qos: 1
+  retain: true
+  purpose: Latest elevator state snapshot; consumer must check eventTime/staleness
+  payload:
+    floorRaw: '43'
+    floorDisplay: B1
+    direction: UP
+    operatingMode: NORMAL
+    connectionState: HEALTHY
+    statusPoints:
+      NORMAL_POWER: true
+      FIRE_OPERATION: false
+    counters:
+      tripCount: 123456
+- topic: '.../telemetry/elevators/{elevatorId}/signals/{signalCode}'
+  direction: gateway->broker
+  qos: 1
+  retain: false
+  purpose: Optional point-level telemetry for high-frequency or diagnostic use
+  payload:
+    value: true
+    quality: GOOD
+- topic: '.../events/elevators/{elevatorId}'
+  direction: gateway->broker
+  qos: 1
+  retain: false
+  purpose: Immutable edge events / signal changes
+  payload:
+    eventType: SIGNAL_CHANGE
+    signalCode: FIRE_OPERATION
+    oldValue: false
+    newValue: true
+    severityHint: CRITICAL
+    correlationId: uuid
+- topic: '.../commands/{commandId}/request'
+  direction: backend->gateway
+  qos: 1
+  retain: false
+  purpose: Authorized supervisory command request
+  payload:
+    commandId: uuid
+    elevatorId: uuid
+    commandCode: PARKING
+    parameters:
+      value: true
+    expiresAt: '2026-07-26T12:35:20Z'
+    requester: user-id
+    approvalCount: 1
+    interlockSnapshotHash: sha256
+- topic: '.../commands/{commandId}/result'
+  direction: gateway->backend
+  qos: 1
+  retain: false
+  purpose: Command acceptance/execution/result state
+  payload:
+    commandId: uuid
+    state: EXECUTED
+    resultCode: OK
+    message: Output observed
+    observedState:
+      PARKING: true
+- topic: '.../config/desired'
+  direction: backend->gateway
+  qos: 1
+  retain: true
+  purpose: Desired gateway configuration
+  payload:
+    configVersion: 42
+    schemaVersion: '1.2'
+    sha256: '...'
+    configuration:
+      debounceDefaults:
+        statusMs: 250
+- topic: '.../config/reported'
+  direction: gateway->backend
+  qos: 1
+  retain: true
+  purpose: Applied config and validation result
+  payload:
+    configVersion: 42
+    applied: true
+    sha256: '...'
+    validationErrors: []
+- topic: '.../diagnostics/network'
+  direction: gateway->backend
+  qos: 0
+  retain: false
+  purpose: Engineering counters
+  payload:
+    rxPackets: 12100
+    txPackets: 11990
+    protocolErrors: 2
+    reconnects: 1
+deliveryRules:
+  ordering: Sequence is monotonically increasing per gateway bootId. Backend deduplicates by gatewayId+bootId+sequence and
+    messageId.
+  offlineBuffer: Gateway persists QoS1 telemetry/events locally; minimum 24h, target 7 days configurable.
+  replay: On reconnect publish backlog oldest-first with original eventTime. receiveTime is assigned by backend.
+  staleness: Retained state is never trusted without eventTime. UI marks stale after configured threshold.
+  commands: Command messages are never retained; expiresAt is mandatory. Gateway rejects expired or locally interlocked commands.
+  payloadEncoding: UTF-8 JSON initially. Protobuf may be introduced as schemaVersion 2 with separate content type/user property.
+security:
+  tls: TLS 1.2+; TLS 1.3 preferred
+  authentication: mTLS per gateway preferred; username/password only as transitional mode
+  authorization: Per-client topic ACL; gateway cannot publish command/request or subscribe to another gateway root
+  rotation: Certificate/token rotation without device reimage
+  audit: Broker connect/disconnect/auth failures and command publish events forwarded to centralized logs

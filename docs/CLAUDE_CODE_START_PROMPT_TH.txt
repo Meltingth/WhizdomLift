@@ -1,0 +1,35 @@
+ใช้ชุดเอกสาร LMS_NG_Revised_Execution_Pack_v2_0 นี้เป็นแผนดำเนินงาน LMS-NG / WhizdomLift ฉบับปรับปรุง ไม่ใช่ให้สรุปหรือเสนอแผนใหม่อีกครั้ง
+
+อ่านตามลำดับ:
+1. README_START_HERE.md
+2. LMS_NG_Revised_Implementation_Plan_v2_0.md
+3. PHASES_REVISED.md
+4. TEST_MATRIX.md และ execution-manifest.json
+5. reference/ORIGINAL_CLAUDE_PLAN_2026-09-13.txt และ reference/legacy-contracts/ เพื่อทำ baseline diff
+6. คำแนะนำและโค้ดใน repository ที่เข้าถึงได้จริง โดยเฉพาะ CLAUDE.md / PHASES.md / logger / decoder / launcher
+
+เริ่มลงมือ PRE-0 แบบ read-only แล้วทำ Deliverable A เป็น DRAFT สร้างไฟล์ใน branch/worktree ที่แยกจาก deployed Capture ไม่แก้โปรแกรมที่กำลังรัน ไม่มีการเปิด COM port ใหม่ ไม่มีการหยุด service/task และไม่รัน Server stack บน Gateway
+
+ผลลัพธ์รอบแรกต้องเป็นไฟล์ที่สร้างจริง ไม่ใช่คำอธิบายอย่างเดียว:
+- baseline/repository/machine inventory พร้อมข้อจำกัดการเข้าถึง
+- known-good Capture release manifest ที่อ้างอิงรุ่นจริง หรือ BLOCKED หากยังพิสูจน์ไม่ได้
+- CONTRACT_BASELINE_DIFF.md เทียบ MQTT/OpenAPI เดิมกับ candidate revision
+- Contracts candidate, JSON Schema, MQTT/ACK/presence examples, UI enums, OpenAPI และ migration draft ตาม Deliverable A
+- validator/tests ที่รันได้อย่างปลอดภัย พร้อมผลจริงและรายการ NOT_RUN/BLOCKED
+- decision/approval packet, contract hash, WORKFLOW_STATE.json และ nextAllowedAction
+
+คง Backend เป็นเจ้าของ floor labels; WhizdomLift ส่ง floorRaw และสัญญาณที่รับจริงเท่านั้น คงคำตัดสิน W-05: 1→B1, 2→1, 47→44 และ 3..46 ยังไม่สอบเทียบ ไม่ยก passenger mapping ไปใส่ W-05
+
+ยึด 2 repo: WhizdomLift = Edge; lms-ng = Server/Web/Contracts/Infra monorepo ไม่มี submodule บังคับ หากพบ lms-ng อยู่แล้วให้ใช้ของเดิมอย่างปลอดภัย ห้าม git init ทับหรือเปลี่ยน visibility เอง
+
+หลัง Deliverable A ให้หยุดที่ Gate G-A ส่งรายการตัดสินใจและไฟล์ Contracts ที่มี hash แน่นอนเพื่อให้ฉันอนุมัติ ห้ามเติม approvedBy/approvedAt เอง ห้ามสร้าง tag APPROVED ก่อนมีคำอนุมัติจริง การอนุมัติให้แก้แผนนี้ไม่ใช่การอนุมัติ Contracts bytes หรือ Live Cutover
+
+หลัง G-A จึงเดิน P0-SERVER + P1-OFFLINE/SHADOW → P2-TEST/HUD ตามแผน การเปลี่ยน Capture จริงต้องผ่าน G-C เฉพาะหนึ่งลิฟต์ และ G-R ก่อนขยายรายตัว ไม่มีคำสั่งย้ายทั้ง 1/2/3/5 พร้อมกันโดยอัตโนมัติ
+
+อย่า refactor deployed log_lift.py ใน P1 และอย่าใช้ logger ที่ import โมดูลใหม่เป็น rollback ต้องมี known-good release/runtime/config อิสระ PUBACK ไม่ใช่ DB commit; retry ต้องเก็บ immutable message identity และใช้ application ACK ตามแผน
+
+ทุก phase รายงาน filesChanged, testsRun, PASS/FAIL/BLOCKED/NOT_RUN, evidencePaths, commit/contractHash และ nextAllowedAction ห้ามใช้ mock เป็นหลักฐานหน้างาน ห้ามลดเกณฑ์เพื่อให้ PASS และห้าม publish raw logs/secrets/config ลูกค้าสู่ public repo
+
+ถ้าบางเครื่องหรือเครื่องมือไม่พร้อม ให้ทำเฉพาะส่วน offline ที่ไม่ขึ้นกับสิ่งนั้นและบันทึก BLOCKED อย่างเจาะจง ไม่ย้าย workload หนักมา Gateway และไม่ข้าม human approval gates
+
+เริ่มทำ PRE-0 และ Deliverable A ตามนี้เลย

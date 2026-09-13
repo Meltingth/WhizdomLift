@@ -1,0 +1,1106 @@
+{
+  "artifactType": "IMPLEMENTATION_PLAN_NOT_EXECUTABLE_DEPLOYMENT",
+  "planId": "LMS-NG-WHZ-REVISE-2.0",
+  "planVersion": "2.0.0",
+  "preparedAt": "2026-09-13",
+  "planFile": "LMS_NG_Revised_Implementation_Plan_v2_0.md",
+  "initialAllowedActions": [
+    "PRE-0_READ_ONLY",
+    "A-DRAFT_SAFE_FILES_AND_TESTS"
+  ],
+  "stopAfterInitialPhase": "G-A",
+  "prohibitedWithoutSeparateApproval": [
+    "LIVE_SERIAL_OPEN",
+    "CAPTURE_STOP",
+    "TASK_CHANGE",
+    "LIVE_DEPLOY",
+    "FIRMWARE_FLASH",
+    "PUBLIC_DATA_PUBLICATION"
+  ],
+  "gates": {
+    "G-A": {
+      "status": "PENDING",
+      "approvedBy": null,
+      "approvedAt": null,
+      "evidenceRef": null
+    },
+    "G-U": {
+      "status": "PENDING",
+      "approvedBy": null,
+      "approvedAt": null,
+      "evidenceRef": null
+    },
+    "G-C": {
+      "status": "PENDING",
+      "approvedBy": null,
+      "approvedAt": null,
+      "evidenceRef": null
+    },
+    "G-R": {
+      "status": "PENDING",
+      "approvedBy": null,
+      "approvedAt": null,
+      "evidenceRef": null
+    },
+    "G-H": {
+      "status": "PENDING",
+      "approvedBy": null,
+      "approvedAt": null,
+      "evidenceRef": null
+    }
+  },
+  "phases": [
+    {
+      "phaseId": "PRE-0",
+      "repositories": "ทั้งสอง",
+      "environment": "read-only / เครื่องที่เข้าถึงได้",
+      "dependsOn": [],
+      "requiredGates": [],
+      "scope": "Inventory + source diff + known-good manifest; ห้ามเปิด port/หยุด Capture",
+      "definitionOfDone": "เอกสาร baseline มีหลักฐานและ scope ที่ตรวจจริง; Capture ไม่เปลี่ยน",
+      "status": "NOT_STARTED"
+    },
+    {
+      "phaseId": "A-DRAFT",
+      "repositories": "lms-ng (+ Edge vendor draft)",
+      "environment": "เครื่องพัฒนา / scratch DB ที่อนุญาต",
+      "dependsOn": [
+        "PRE-0"
+      ],
+      "requiredGates": [],
+      "scope": "Contracts candidate + schema/examples/OpenAPI/migration draft + baseline diff",
+      "definitionOfDone": "Cross-language validation + decision packet/hash; หยุดรอ G-A",
+      "status": "NOT_STARTED"
+    },
+    {
+      "phaseId": "P0-SERVER",
+      "repositories": "lms-ng",
+      "environment": "Dell / sandbox",
+      "dependsOn": [
+        "A-DRAFT"
+      ],
+      "requiredGates": [
+        "G-A"
+      ],
+      "scope": "Stack/API skeleton + TLS/ACL/Auth + persistent volumes + backup baseline",
+      "definitionOfDone": "Build/migrations/role checks/restore baseline ผ่าน; ไม่มี shared passwords",
+      "status": "NOT_STARTED"
+    },
+    {
+      "phaseId": "P1-OFFLINE",
+      "repositories": "WhizdomLift",
+      "environment": "เครื่องพัฒนา",
+      "dependsOn": [
+        "A-DRAFT"
+      ],
+      "requiredGates": [
+        "G-A"
+      ],
+      "scope": "New reader/streaming model/outbox/ACK/replay; no deployed logger refactor",
+      "definitionOfDone": "Gateway offline tests ผ่าน; no real serial access",
+      "status": "NOT_STARTED"
+    },
+    {
+      "phaseId": "P1-SHADOW",
+      "repositories": "WhizdomLift",
+      "environment": "read-only log reader",
+      "dependsOn": [
+        "P1-OFFLINE"
+      ],
+      "requiredGates": [
+        "G-A"
+      ],
+      "scope": "Tail สำเนา/ไฟล์ที่อนุญาต; TEST IDs only; checkpoint/rotation",
+      "definitionOfDone": "ไม่แย่ง COM/ไม่เขียน Capture เดิม; logical states ตรง expected",
+      "status": "NOT_STARTED"
+    },
+    {
+      "phaseId": "HUD-CORE",
+      "repositories": "lms-ng",
+      "environment": "browser preview / Dell",
+      "dependsOn": [
+        "P0-SERVER"
+      ],
+      "requiredGates": [
+        "G-A"
+      ],
+      "scope": "Operations shaft + detail + quality/motion + TEST fixtures",
+      "definitionOfDone": "UI truthfulness/visual core evidence; ขอ G-U",
+      "status": "NOT_STARTED"
+    },
+    {
+      "phaseId": "P2-TEST",
+      "repositories": "ทั้งสอง",
+      "environment": "Dell TEST stack",
+      "dependsOn": [
+        "P0-SERVER",
+        "P1-OFFLINE",
+        "HUD-CORE"
+      ],
+      "requiredGates": [
+        "G-A"
+      ],
+      "scope": "End-to-end + fault matrix + ordering + realtime resnapshot + latency/FPS",
+      "definitionOfDone": "beforeCanary tests ผ่านและหลักฐานพร้อม; ยังไม่หยุด logger จริง",
+      "status": "NOT_STARTED"
+    },
+    {
+      "phaseId": "P2-CANARY",
+      "repositories": "ทั้งสอง",
+      "environment": "Gateway + Dell / หนึ่งลิฟต์",
+      "dependsOn": [
+        "P2-TEST",
+        "P1-SHADOW"
+      ],
+      "requiredGates": [
+        "G-A",
+        "G-U",
+        "G-C"
+      ],
+      "scope": "Authorized one-lift cutover + verification + independent rollback",
+      "definitionOfDone": "No collateral Capture disruption; field evidence; หยุดรอ G-R",
+      "status": "NOT_STARTED"
+    },
+    {
+      "phaseId": "P3-FLEET",
+      "repositories": "ทั้งสอง",
+      "environment": "หน้างานทีละตัว",
+      "dependsOn": [
+        "P2-CANARY"
+      ],
+      "requiredGates": [
+        "G-R"
+      ],
+      "scope": "ทยอย 1/3/5 ตาม scope; W-04 ไม่ auto-commission",
+      "definitionOfDone": "หลักฐานรายลิฟต์/ownership/gaps; ห้ามย้ายทั้งหมดพร้อมกัน",
+      "status": "NOT_STARTED"
+    },
+    {
+      "phaseId": "P3-HISTORY",
+      "repositories": "lms-ng",
+      "environment": "TEST / authorized site",
+      "dependsOn": [
+        "P2-TEST"
+      ],
+      "requiredGates": [
+        "G-A"
+      ],
+      "scope": "Event explorer + partitions + mapping-versioned history + Analytics",
+      "definitionOfDone": "Counts/coverage/censored intervals/replay recompute ผ่าน",
+      "status": "NOT_STARTED"
+    },
+    {
+      "phaseId": "P4-ALARMS-DEMO",
+      "repositories": "lms-ng",
+      "environment": "TEST และ authorized site",
+      "dependsOn": [
+        "P3-HISTORY"
+      ],
+      "requiredGates": [
+        "G-A"
+      ],
+      "scope": "Full Alarm Center + per-session Demo + no contamination",
+      "definitionOfDone": "ACK/mute semantics, no historical live notifications, isolated Demo",
+      "status": "NOT_STARTED"
+    },
+    {
+      "phaseId": "P5-PRESENTATION",
+      "repositories": "lms-ng",
+      "environment": "browser / Dell",
+      "dependsOn": [
+        "HUD-CORE",
+        "P2-TEST"
+      ],
+      "requiredGates": [
+        "G-A"
+      ],
+      "scope": "Presentation HUD + map/background + visual polish",
+      "definitionOfDone": "G-U visual review/performance/license evidence",
+      "status": "NOT_STARTED"
+    },
+    {
+      "phaseId": "P5-DRY-RUN",
+      "repositories": "lms-ng",
+      "environment": "TEST / presentation",
+      "dependsOn": [
+        "P4-ALARMS-DEMO"
+      ],
+      "requiredGates": [
+        "G-A"
+      ],
+      "scope": "Optional simulated command workflow; REAL LIVE always denied",
+      "definitionOfDone": "DRY_RUN result explicit; no serial/hardware dispatch; owner may defer",
+      "status": "NOT_STARTED"
+    },
+    {
+      "phaseId": "P6-HARDENING",
+      "repositories": "ทั้งสอง",
+      "environment": "TEST + authorized site",
+      "dependsOn": [
+        "P3-FLEET",
+        "P3-HISTORY",
+        "P4-ALARMS-DEMO",
+        "P5-PRESENTATION"
+      ],
+      "requiredGates": [
+        "G-R"
+      ],
+      "scope": "24h soak + restore/reconcile + cold boot + security + handover",
+      "definitionOfDone": "Field evidence complete; known limitations; ขอ G-H",
+      "status": "NOT_STARTED"
+    }
+  ],
+  "tests": [
+    {
+      "testId": "C01",
+      "phase": "A-DRAFT",
+      "group": "Contract",
+      "description": "Baseline inventory ไม่สูญ S2/S3",
+      "expectedResult": "พบ baseline ใน pack และ diff ทุก breaking field; ไม่อ้างว่าไม่มีทั่วระบบ",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "C02",
+      "phase": "A-DRAFT",
+      "group": "Contract",
+      "description": "Python/Node schema parity",
+      "expectedResult": "valid/invalid fixtures ให้ผลตรงกัน พร้อม format enforcement",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "C03",
+      "phase": "A-DRAFT",
+      "group": "Contract",
+      "description": "Object closure / allOf",
+      "expectedResult": "assembled valid payload ผ่าน; ฟิลด์เกินถูกปฏิเสธโดยไม่ reject body ที่ถูกต้อง",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "C04",
+      "phase": "A-DRAFT",
+      "group": "Contract",
+      "description": "Int64 / ordering strings",
+      "expectedResult": "เกิน JS safe integer ยัง compare ถูก; overflow ถูกปฏิเสธ",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "C05",
+      "phase": "A-DRAFT",
+      "group": "Contract",
+      "description": "Envelope/topic/scope validation",
+      "expectedResult": "UUID, realm, site, gateway, elevator, producer ผิดถูก reject",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "C06",
+      "phase": "A-DRAFT",
+      "group": "Contract",
+      "description": "Pin/hash/release guard",
+      "expectedResult": "รุ่นที่ pin ตรวจได้; latest ใหม่ไม่ทำลาย CI รุ่นเก่า; approval ไม่สร้างเอง",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "C07",
+      "phase": "A-DRAFT",
+      "group": "Contract",
+      "description": "Floor seeds/evidence",
+      "expectedResult": "Passenger 46 codes/43 landings; W05 code47→44 และ3..46 unknown",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "C08",
+      "phase": "A-DRAFT",
+      "group": "Contract",
+      "description": "ACK/presence schema exceptions",
+      "expectedResult": "LWT ไม่มี occurredAt ปลอม; ACK target/hash/type ถูกต้อง",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G01",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "ห้าม serial writes",
+      "expectedResult": "AST/transitive audit + FakeSerial.write raises; tests ไม่เปิดพอร์ตจริง",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G02",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "Parser bounds/invalid garbage",
+      "expectedResult": "12/14 hex, malformed ms, oversize line/buffer ถูกจัดการแบบ bounded",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G03",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "Beacon/duplicate/wrong lift",
+      "expectedResult": "LIFT0/unknown/duplicate refuse; ไม่มี current ผิดตัว",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G04",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "Ownership/PID reuse",
+      "expectedResult": "PID/start time/executable/token และ port lock ป้องกัน double reader",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G05",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "Streaming debounce",
+      "expectedResult": "Glitch/start/tail/timer/no-future-data ได้ state ที่นิยามไว้",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G06",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "Board wrap/reboot/drift",
+      "expectedResult": "wrap ไม่เป็น reboot; clock drift ไม่สร้าง false restart; discontinuity reset",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G07",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "Raw journal → outbox crash",
+      "expectedResult": "recover source cursor ไม่ทำ record ซ้ำหรือข้าม durable source",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G08",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "Known-good independent runtime",
+      "expectedResult": "baseline logger import/run ได้โดยไม่มี agent modules/environment ใหม่",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G09",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "Shadow/replay isolation",
+      "expectedResult": "ไม่มี source log writes/COM open; TEST IDs; date ambiguity มี quality",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G10",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "Worker/network failure isolation",
+      "expectedResult": "Publisher stall ไม่บัง reader; health แยก Capture/Delivery",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G11",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "Freshness cadence/boundaries",
+      "expectedResult": "idle60sไม่stale; valid frame75/90ชัด; garbage/heartbeatไม่refresh ST",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G12",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "Direction/status conflict",
+      "expectedResult": "UP+DN และ RUNNING conflict เป็น UNKNOWN/quality; ไม่เดาตำแหน่ง",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G13",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "Sensor suspicion validation",
+      "expectedResult": "VS2 8/4 ไม่ยืนยัน fault โดยไม่มี independent evidence; odd glitch ไม่แก้เอง",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G14",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "Expected absent/migrating lift",
+      "expectedResult": "W04ไม่ fail ทั้ง fleet; new beacon ไม่ auto-commission",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "G15",
+      "phase": "P1-OFFLINE",
+      "group": "Gateway",
+      "description": "Timestamp compatibility",
+      "expectedResult": "Format/CLI และ latency ที่ตั้งใจเปลี่ยนทดสอบแยก; ไม่มี byte-identical claim เท็จ",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "I01",
+      "phase": "P2-TEST",
+      "group": "Delivery",
+      "description": "PUBACK only",
+      "expectedResult": "Outbox ยังไม่ DB_COMMITTED แม้ได้รับ PUBACK",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "I02",
+      "phase": "P2-TEST",
+      "group": "Delivery",
+      "description": "Application ACK success/lost",
+      "expectedResult": "ACKหลังSQLcommit; lostACK→retry→one business effect+ACKซ้ำ",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "I03",
+      "phase": "P2-TEST",
+      "group": "Delivery",
+      "description": "API-only outage",
+      "expectedResult": "Brokerอยู่/APIดับ:durable recordsกลับเข้าDBครบหลังrecovery",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "I04",
+      "phase": "P2-TEST",
+      "group": "Delivery",
+      "description": "Database-only outage",
+      "expectedResult": "ไม่มีsuccessACKก่อนDBพร้อม; replayครบหลังDBกลับ",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "I05",
+      "phase": "P2-TEST",
+      "group": "Delivery",
+      "description": "Broker outage/restart",
+      "expectedResult": "RawCapture/SQLiteเดินต่อ; queue drain ภายใต้bounds",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "I06",
+      "phase": "P2-TEST",
+      "group": "Delivery",
+      "description": "Crash before transaction commit",
+      "expectedResult": "Receipt/domain rollbackทั้งชุด; retryทำสำเร็จครั้งเดียว",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "I07",
+      "phase": "P2-TEST",
+      "group": "Delivery",
+      "description": "Crash after commit before ACK/fanout",
+      "expectedResult": "receiptให้ACKซ้ำ; server outboxส่งUI/alarmต่อ",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "I08",
+      "phase": "P2-TEST",
+      "group": "Delivery",
+      "description": "Payload mismatch under same identity",
+      "expectedResult": "quarantine/hashconflict; ไม่แก้ข้อมูลเดิมหรือsuccessACK",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "I09",
+      "phase": "P2-TEST",
+      "group": "Delivery",
+      "description": "Fair fresh/backlog scheduling",
+      "expectedResult": "freshไม่รอhistoryทั้งหมด; historyและทุกliftไม่starve",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "I10",
+      "phase": "P2-TEST",
+      "group": "Delivery",
+      "description": "Retained old snapshot",
+      "expectedResult": "Backlogไม่ทับBrokerretained; DBcurrentไม่ถอย",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "I11",
+      "phase": "P2-TEST",
+      "group": "Delivery",
+      "description": "Inbox dedupe across partitions",
+      "expectedResult": "Same ID eventTimeเปลี่ยนเป็นconflict; ไม่มีduplicateglobal",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "I12",
+      "phase": "P2-TEST",
+      "group": "Delivery",
+      "description": "Poison record / ACK spoof",
+      "expectedResult": "Quarantineไม่บังรายการอื่น; ACKคนอื่นล้างqueueไม่ได้",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "O01",
+      "phase": "P2-TEST",
+      "group": "Ordering",
+      "description": "Process restart with queued history",
+      "expectedResult": "identity/bootIdของrecordเก่าคงเดิม; durable seqของใหม่เพิ่มต่อ",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "O02",
+      "phase": "P2-TEST",
+      "group": "Ordering",
+      "description": "Wall clock moves backwards/forwards",
+      "expectedResult": "currentไม่ตัดสินจากwallclock; TIME_UNCERTAIN/latencyrefusalถูกต้อง",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "O03",
+      "phase": "P2-TEST",
+      "group": "Ordering",
+      "description": "SQLite lost/old restored/producer copied",
+      "expectedResult": "No seq reset under old epoch; unauthorized producer cannot own current",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "O04",
+      "phase": "P2-TEST",
+      "group": "Ordering",
+      "description": "WS snapshot/delta race",
+      "expectedResult": "ไม่มีdeltaตกหล่นจากbootstrap; per-asset revisionsถูกต้อง",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "O05",
+      "phase": "P2-TEST",
+      "group": "Ordering",
+      "description": "Redis/WS/server restart/drop-last-delta",
+      "expectedResult": "resnapshot/revision heartbeatทำให้clientคืนconsistentstate",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "O06",
+      "phase": "P2-TEST",
+      "group": "Ordering",
+      "description": "New connection with old will",
+      "expectedResult": "LWTเก่าไม่ล้มconnectionใหม่; retainedONLINEต้องfreshproof",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "U01",
+      "phase": "HUD-CORE",
+      "group": "HUD",
+      "description": "Shaft motion tied to state",
+      "expectedResult": "เปลี่ยนAPIstateแล้วcar/เลขชั้นอัปเดต ไม่ใช้routeจำลอง",
+      "beforeCanary": true,
+      "environment": "TEST browser / Dell",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "U02",
+      "phase": "HUD-CORE",
+      "group": "HUD",
+      "description": "No new source data",
+      "expectedResult": "ไม่สร้างfloorถัดไป/ปลายทางจากUPเอง",
+      "beforeCanary": true,
+      "environment": "TEST browser / Dell",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "U03",
+      "phase": "HUD-CORE",
+      "group": "HUD",
+      "description": "Disconnected/unknown/conflict",
+      "expectedResult": "หยุดprojection; lastknown/age/qualityอ่านชัด",
+      "beforeCanary": true,
+      "environment": "TEST browser / Dell",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "U04",
+      "phase": "HUD-CORE",
+      "group": "HUD",
+      "description": "Service lift raw scale",
+      "expectedResult": "W05uncalibratedไม่วางตรงphysicalfloorที่เดา",
+      "beforeCanary": true,
+      "environment": "TEST browser / Dell",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "U05",
+      "phase": "HUD-CORE",
+      "group": "HUD",
+      "description": "W04 service vs commissioning",
+      "expectedResult": "outofserviceไม่กลายเป็นรอติดตั้ง; KPIdenominatorถูก",
+      "beforeCanary": true,
+      "environment": "TEST browser / Dell",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "U06",
+      "phase": "HUD-CORE",
+      "group": "HUD",
+      "description": "Alarm & labels while animating",
+      "expectedResult": "alarm/confirmedfloorไม่รอanimationจบ; missingFIREไม่เป็นNORMAL",
+      "beforeCanary": true,
+      "environment": "TEST browser / Dell",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "U07",
+      "phase": "HUD-CORE",
+      "group": "HUD",
+      "description": "Tab/reconnect/reduced motion",
+      "expectedResult": "resumeจากsnapshot; noqueuedobsoleteanimations; motionลดได้",
+      "beforeCanary": true,
+      "environment": "TEST browser / Dell",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "U08",
+      "phase": "HUD-CORE",
+      "group": "HUD",
+      "description": "Steady latency / clocks",
+      "expectedResult": "≥200samples P95≤2s Gatewayreceipt→UIcommit; clocksตรวจครบ",
+      "beforeCanary": true,
+      "environment": "TEST browser / Dell",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "U09",
+      "phase": "HUD-CORE",
+      "group": "HUD",
+      "description": "HUD core FPS/screens",
+      "expectedResult": "1080p5cars/4charts P95frame≤33.3ms target; nooverlap1366/4K",
+      "beforeCanary": true,
+      "environment": "TEST browser / Dell",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "U10",
+      "phase": "P3-HISTORY",
+      "group": "HUD",
+      "description": "Analytics/censored/coverage",
+      "expectedResult": "definitiongroundtruthผ่าน; unknown≠0; backlogไม่ยิงlivealarm",
+      "beforeCanary": false,
+      "environment": "TEST browser / Dell",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "U11",
+      "phase": "P5-PRESENTATION",
+      "group": "HUD",
+      "description": "Presentation reference fidelity",
+      "expectedResult": "ownerตรวจOperations/Presentationภาพอ้างอิง; ไม่ใช้PNGทั้งภาพแทนUI",
+      "beforeCanary": false,
+      "environment": "TEST browser / Dell",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "U12",
+      "phase": "HUD-CORE",
+      "group": "HUD",
+      "description": "2h pre-canary memory soak",
+      "expectedResult": "boundedbuffers/listeners; ไม่มีunexplainedmemorygrowth",
+      "beforeCanary": true,
+      "environment": "TEST browser / Dell",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "S01",
+      "phase": "P2-TEST",
+      "group": "Security",
+      "description": "REAL/TEST topic ACL",
+      "expectedResult": "simเขียนREAL/gatewayอื่น/ACKไม่ได้; Server subscriptionsครอบTESTที่อนุญาต",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "S02",
+      "phase": "P2-TEST",
+      "group": "Security",
+      "description": "REST/WS auth and scope",
+      "expectedResult": "anonymous/expiredsession/wrongsiteถูกปฏิเสธ; Originverified",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "S03",
+      "phase": "P2-TEST",
+      "group": "Security",
+      "description": "TLS/cert/credentials",
+      "expectedResult": "invalidCA/hostnameปฏิเสธ; ไม่มีdefaultsharedpassword; no1883LAN",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "S04",
+      "phase": "P2-TEST",
+      "group": "Security",
+      "description": "Public artifact secret scan",
+      "expectedResult": "ไม่มีprivatekey/password/rawoperationalcapture/realhostconfigในpublicdiff",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "S05",
+      "phase": "P2-TEST",
+      "group": "Security",
+      "description": "Read-only command enforcement",
+      "expectedResult": "REAL LIVEdeniedทุกrole; Agentไม่มีhardwaredispatch",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "D01",
+      "phase": "P2-TEST",
+      "group": "Demo",
+      "description": "TEST routing end-to-end",
+      "expectedResult": "SIDsจากlms-simเข้าTESTDB/current/WSได้ตามscope",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "D02",
+      "phase": "P4-ALARMS-DEMO",
+      "group": "Demo",
+      "description": "Demo per-session isolation",
+      "expectedResult": "Demoผู้ใช้หนึ่งคนไม่เปลี่ยนLiveผู้ใช้อื่นหรือingestion",
+      "beforeCanary": false,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "D03",
+      "phase": "P4-ALARMS-DEMO",
+      "group": "Demo",
+      "description": "Demo zero contamination",
+      "expectedResult": "REALtelemetry/alarm/commandrowsไม่เพิ่มจากDemo; auditstart/stopอนุญาต",
+      "beforeCanary": false,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "D04",
+      "phase": "P4-ALARMS-DEMO",
+      "group": "Demo",
+      "description": "Exit Demo / live monitoring",
+      "expectedResult": "กลับsnapshotสด; positionsจำลองไม่ปน; realalarmเดินต่อ",
+      "beforeCanary": false,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "P01",
+      "phase": "P2-TEST",
+      "group": "Operations",
+      "description": "Fresh/upgrade migrations",
+      "expectedResult": "ไม่rewriteappliedmigration; scratchfresh+upgradeทั้งคู่ผ่าน",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "P02",
+      "phase": "P2-TEST",
+      "group": "Operations",
+      "description": "Partition boundary/history",
+      "expectedResult": "ข้ามเดือน/ปี/lateeventได้; futuretimestampไม่สร้างpartitionไม่จำกัด",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "P03",
+      "phase": "P2-TEST",
+      "group": "Operations",
+      "description": "Backup restore and reconciliation",
+      "expectedResult": "serverDataEpochเปลี่ยนตามrunbook; archivedrecordsreconcile; currentไม่ถอย",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "P04",
+      "phase": "P2-TEST",
+      "group": "Operations",
+      "description": "Outbox/storage pressure",
+      "expectedResult": "boundedcapacity+72h/2×ratecalculation; no silent unacked drop; scratchfull-disk",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "P05",
+      "phase": "P2-TEST",
+      "group": "Operations",
+      "description": "Build without submodule",
+      "expectedResult": "lms-ngcloneเดี่ยวbuild/testได้จากpinnedcontract/fixture",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "P06",
+      "phase": "P2-TEST",
+      "group": "Operations",
+      "description": "Dell cold boot readiness",
+      "expectedResult": "serviceขึ้นตามhostingที่อนุมัติ; ไม่ต้องauto-loginadminโดยไม่ยอมรับrisk",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "P07",
+      "phase": "P2-TEST",
+      "group": "Operations",
+      "description": "Release rollback rehearsal",
+      "expectedResult": "immutableoldruntime/configคืนCaptureในbudgetที่วัด; noimportnewmodules",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "P08",
+      "phase": "P6-HARDENING",
+      "group": "Operations",
+      "description": "Full24hsoak/restore/security",
+      "expectedResult": "รายงานCPU/RAM/disk/queue/versionsและknownrisksพร้อมhandover",
+      "beforeCanary": false,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "P09",
+      "phase": "P2-TEST",
+      "group": "Operations",
+      "description": "Capacity/load multiple clients",
+      "expectedResult": "TESTload≥2×measuredaverageพร้อมburstและหลายbrowser; rate/bytesสมมุติฐานชัด",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "P10",
+      "phase": "P2-TEST",
+      "group": "Operations",
+      "description": "Workflow/gates do not self-approve",
+      "expectedResult": "-PlanOnlydefault; missing/expired/wrongscopetokenblock; noautoall-liftcutover",
+      "beforeCanary": true,
+      "environment": "TEST / fakes / scratch",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "F01",
+      "phase": "P2-CANARY",
+      "group": "Field",
+      "description": "One-lift authorization/identity",
+      "expectedResult": "ownerrecordตรงwindow/release/lift; verifiedboard; portไม่ซ้ำ",
+      "beforeCanary": false,
+      "environment": "LIVE เฉพาะ owner-approved scope",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "F02",
+      "phase": "P2-CANARY",
+      "group": "Field",
+      "description": "Actual floor/shaft/capture continuity",
+      "expectedResult": "selectedliftตรงfieldobservation; otherloggers/countersยังเดิน",
+      "beforeCanary": false,
+      "environment": "LIVE เฉพาะ owner-approved scope",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "F03",
+      "phase": "P2-CANARY",
+      "group": "Field",
+      "description": "Canary observation/evidence",
+      "expectedResult": "target2h/20tripsเมื่อเกิดได้จริง; gapsเปิดเผย; nofalsePASS",
+      "beforeCanary": false,
+      "environment": "LIVE เฉพาะ owner-approved scope",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "F04",
+      "phase": "P2-CANARY",
+      "group": "Field",
+      "description": "Field rollback if approved",
+      "expectedResult": "known-goodคืนตามtarget; preservequeue/historyและบันทึกgap",
+      "beforeCanary": false,
+      "environment": "LIVE เฉพาะ owner-approved scope",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    },
+    {
+      "testId": "F05",
+      "phase": "P3-FLEET",
+      "group": "Field",
+      "description": "Sequential fleet rollout",
+      "expectedResult": "eachliftapproved; W05profileเฉพาะ; W04notautoenrolled",
+      "beforeCanary": false,
+      "environment": "LIVE เฉพาะ owner-approved scope",
+      "result": "NOT_RUN",
+      "evidencePath": null
+    }
+  ],
+  "notes": [
+    "beforeCanary=true หมายถึง test ที่ต้องสร้างและผ่านก่อน G-C ไม่ใช่ผลผ่านที่มีอยู่แล้ว",
+    "CLI/scripts ในแผนยังต้อง implement; manifest นี้ไม่สั่งรันคำสั่งหน้างาน"
+  ]
+}
