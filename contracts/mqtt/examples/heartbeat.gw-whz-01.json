@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "2.0",
+  "messageType": "heartbeat",
+  "messageId": "e6222ab3-9109-4b7c-99ed-367aba8abcfc",
+  "organizationId": "11111111-1111-4111-8111-111111111111",
+  "siteId": "22222222-2222-4222-8222-222222222222",
+  "gatewayId": "33333333-3333-4333-8333-333333333333",
+  "elevatorId": null,
+  "producerId": "55555555-5555-4555-8555-555555555555",
+  "producerEpoch": 1,
+  "bootId": "66666666-6666-4666-8666-666666666666",
+  "streamId": "31666c10-b5fb-4af3-8c6b-26da17e657e9",
+  "streamSeq": "184223",
+  "eventTime": "2026-09-13T11:34:20.001Z",
+  "observedAt": "2026-09-13T11:34:20.001Z",
+  "origin": "LIVE",
+  "clockQuality": "SYNCED",
+  "uptimeSec": 501842,
+  "agentVersion": "0.3.0",
+  "queueDepth": 0,
+  "lifts": {
+    "44444444-4444-4444-8444-444444444444": {
+      "bindState": "BOUND",
+      "lastAnyBytesAt": "2026-09-13T11:33:41.212Z",
+      "lastValidFrameAt": "2026-09-13T11:33:41.212Z",
+      "lastValidStateAt": "2026-09-13T11:33:41.212Z",
+      "port": "COM20",
+      "firmware": "1.2.2",
+      "rejectedLines": 0
+    },
+    "cccccccc-cccc-4ccc-8ccc-cccccccccccc": {
+      "bindState": "NOT_CONNECTED",
+      "lastAnyBytesAt": null,
+      "lastValidFrameAt": null,
+      "lastValidStateAt": null,
+      "port": null,
+      "firmware": null,
+      "rejectedLines": 0
+    }
+  }
+}

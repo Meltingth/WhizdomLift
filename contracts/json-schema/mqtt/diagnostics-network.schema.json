@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lms-ng.internal/contracts/2.0/mqtt/diagnostics-network.schema.json",
+  "title": "LMS-NG MQTT diagnostics/network v2",
+  "description": "Published QoS0, not retained, to diagnostics/network/{gatewayId} every 60 seconds. Engineering counters -- explicitly not evidence of live telemetry (revised plan section A.3).",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "https://lms-ng.internal/contracts/2.0/mqtt/envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "required": [
+        "elevatorId",
+        "lifts",
+        "outbox"
+      ],
+      "properties": {
+        "messageType": {
+          "const": "diagnostics"
+        },
+        "elevatorId": {
+          "type": "null"
+        },
+        "lifts": {
+          "type": "object",
+          "propertyNames": {
+            "format": "uuid"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "linesTotal": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "rejectedLines": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "reconnects": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "boardRestarts": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "identityRebounds": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "outbox": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "unsent",
+            "droppedRows"
+          ],
+          "properties": {
+            "unsent": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "oldestUnsentAgeSec": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "droppedRows": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Rows dropped because the bounded outbox capacity was exceeded. Must be reported, never silently zero when it is not (revised plan section A.5, test P04)."
+            },
+            "diskBytes": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  ],
+  "unevaluatedProperties": false
+}

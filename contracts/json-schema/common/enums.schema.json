@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json",
+  "title": "LMS-NG shared enum definitions",
+  "description": "One $defs entry per enum, referenced by JSON Pointer (#/$defs/<name>) from every other schema in this bundle. Values here are additive-safe: a MINOR contract bump may add a new enum value, but removing or renaming one is a MAJOR change (docs/decisions/G-A_DECISION_PACKET.md section on versioning).",
+  "$defs": {
+    "origin": {
+      "type": "string",
+      "enum": [
+        "LIVE",
+        "SIMULATED",
+        "IMPORT"
+      ],
+      "description": "LIVE = read from a real Arduino board via the RS485 capture chain. SIMULATED = produced by the TEST-site simulator, never real hardware. IMPORT = a historical/recorded replay ingested through the authorized import path. Immutable once set on a record; a retry of a LIVE message stays LIVE even if delivered late (revised plan section A.6)."
+    },
+    "clockQuality": {
+      "type": "string",
+      "enum": [
+        "SYNCED",
+        "UNSYNCED",
+        "UNCERTAIN"
+      ],
+      "description": "Whether the producing process's clock is known to be NTP-synced. UNCERTAIN means the offset itself is unknown, not just large. A consumer must not certify cross-machine latency when this is anything but SYNCED (revised plan section A.8, test U08)."
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "UP",
+        "DOWN",
+        "IDLE",
+        "UNKNOWN"
+      ],
+      "description": "UP/DOWN only while the UP or DN contact is exclusively closed. Both closed at once, or neither while motion=RUNNING, is UNKNOWN plus a dataQuality.directionConflict flag -- never guessed at (test G12)."
+    },
+    "motion": {
+      "type": "string",
+      "enum": [
+        "RUNNING",
+        "STOPPED",
+        "UNKNOWN"
+      ],
+      "description": "Whether the car is physically moving right now, distinct from direction (which can be stale/last-known while motion is UNKNOWN). Directly backs the HUD's requirement to stop animating on motion=UNKNOWN (revised plan section D.3 rule 2)."
+    },
+    "operatingMode": {
+      "type": "string",
+      "enum": [
+        "NORMAL",
+        "FIRE",
+        "UNKNOWN"
+      ],
+      "description": "UNKNOWN is required, not optional-with-a-default, because FIRE/FIRE_RETURN pins have never been physically activated on this building -- their absence must never be read as NORMAL (revised plan section A.7)."
+    },
+    "connectionState": {
+      "type": "string",
+      "enum": [
+        "ONLINE",
+        "AWAITING_FRESH_PROOF",
+        "STALE",
+        "INTERFACE_NO_RXTX",
+        "GATEWAY_OFFLINE",
+        "PENDING_INSTALL",
+        "NOT_COMMISSIONED",
+        "OUT_OF_SERVICE",
+        "UNKNOWN"
+      ],
+      "description": "Liveness/commissioning state as seen by the Platform for one elevator. AWAITING_FRESH_PROOF is the state right after a Gateway reconnect where a retained presence value says ONLINE but no fresh heartbeat/state has arrived yet -- retained truth is never trusted as current on its own (revised plan section A.4). PENDING_INSTALL/NOT_COMMISSIONED/OUT_OF_SERVICE are three DISTINCT reasons a lift shows no live data (revision R12) -- they must never collapse into one another (test U05: W-04's OUT_OF_SERVICE must not render as PENDING_INSTALL)."
+    },
+    "floorKind": {
+      "type": "string",
+      "enum": [
+        "LANDING",
+        "TRANSIT",
+        "UNCALIBRATED"
+      ],
+      "description": "LANDING = a code with a known building floor label. TRANSIT = a code the car passes through but never stops at (building codes 4, 9, 11 on the WHZ-PAX profile). UNCALIBRATED = a code whose real-world floor is not yet established (all of W-05's codes 3..46). UNCALIBRATED codes render as 'code N', never a guessed label (test U04)."
+    },
+    "dataQualityFlag": {
+      "type": "string",
+      "enum": [
+        "REJECTED_LINES",
+        "POSITION_BIT_SUSPECT",
+        "DIRECTION_CONFLICT",
+        "TIME_UNCERTAIN",
+        "CAPTURE_OK_DELIVERY_DEGRADED"
+      ],
+      "description": "POSITION_BIT_SUSPECT replaces the old plan's SENSOR_VS2_FAULT naming (revised plan section B.5): it is a diagnostic candidate rule, not an assertion that a sensor is broken, until an operator/calibration step confirms it."
+    },
+    "alarmSeverity": {
+      "type": "string",
+      "enum": [
+        "CRITICAL",
+        "MAJOR",
+        "MINOR",
+        "WARNING"
+      ]
+    },
+    "alarmState": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "ACKED",
+        "CLEARED",
+        "CLOSED"
+      ],
+      "description": "ACTIVE/CLEARED is the physical condition; ACKED/CLOSED is the operator workflow layered on top. An ACK must never clear a condition that is still physically true (revised plan section F.2)."
+    },
+    "commandState": {
+      "type": "string",
+      "enum": [
+        "REQUESTED",
+        "PENDING_APPROVAL",
+        "APPROVED",
+        "DISPATCHED",
+        "ACCEPTED",
+        "EXECUTED",
+        "REJECTED",
+        "FAILED",
+        "TIMED_OUT",
+        "CANCELLED"
+      ]
+    },
+    "commandMode": {
+      "type": "string",
+      "enum": [
+        "DRY_RUN",
+        "LIVE"
+      ],
+      "description": "REAL elevators only ever accept DRY_RUN in this POC -- the RS485 link is transmit-only by hardware (MAX485 DE/RE tied high). A server MUST refuse LIVE for any REAL-origin elevator regardless of caller role (test S05)."
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "live",
+        "demo"
+      ],
+      "description": "WebSocket/REST-facing source flag that drives the DEMO banner. Distinct from the wire-level 'origin' enum -- 'demo' here means a per-session overlay, never a value published over MQTT (see contracts/mqtt spec, origin never equals demo)."
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "operator",
+        "supervisor",
+        "technician",
+        "admin"
+      ]
+    }
+  }
+}

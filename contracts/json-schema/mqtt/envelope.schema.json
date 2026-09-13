@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lms-ng.internal/contracts/2.0/mqtt/envelope.schema.json",
+  "title": "LMS-NG MQTT envelope v2 (open base -- assembled roots close it)",
+  "description": "Common fields on every MQTT payload except 'will' (which has its own minimal shape, see will.schema.json). This base is intentionally OPEN (no additionalProperties:false here); each concrete payload schema (state.schema.json etc.) composes this with allOf and closes the ASSEMBLED shape with unevaluatedProperties:false, per revised plan section A.11 and test C03 -- closing every layer independently is the JSON Schema footgun [T2] this design avoids.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "messageType",
+    "messageId",
+    "organizationId",
+    "siteId",
+    "gatewayId",
+    "producerId",
+    "producerEpoch",
+    "bootId",
+    "streamId",
+    "streamSeq",
+    "eventTime",
+    "observedAt",
+    "origin",
+    "clockQuality"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "2.0"
+    },
+    "messageType": {
+      "type": "string",
+      "enum": [
+        "state",
+        "event",
+        "snapshot",
+        "presence",
+        "heartbeat",
+        "diagnostics",
+        "ack"
+      ]
+    },
+    "messageId": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid",
+      "description": "Created once before durable enqueue. A retry re-sends the identical bytes under the identical messageId -- this is the field telemetry.ingest_receipt dedupes on (revised plan section A.5)."
+    },
+    "organizationId": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+    },
+    "siteId": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+    },
+    "gatewayId": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+    },
+    "elevatorId": {
+      "oneOf": [
+        {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Required key present on every payload; value is UUID for elevator-scoped messages and null only where the concrete schema explicitly allows it (Gateway-lifecycle events)."
+    },
+    "producerId": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid",
+      "description": "Identity of the registered installation producing this stream -- assigned by the Backend at enrollment, not self-declared by the Gateway (revised plan section A.6)."
+    },
+    "producerEpoch": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Incremented only by an explicit re-enrollment (operator action after e.g. SQLite loss), never by a plain process restart (revised plan section A.6, test O03)."
+    },
+    "bootId": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid",
+      "description": "One per agent process lifetime. Diagnostic only -- NEVER used for ordering or dedup by a consumer (that is streamId/streamSeq's job). Kept purely so a human can tell which process instance emitted a message."
+    },
+    "streamId": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid",
+      "description": "Identifies which durable counter this message's streamSeq belongs to. One elevator's telemetry stream and the Gateway's own lifecycle stream are DIFFERENT streamIds -- their sequence spaces must never be compared to each other (revised plan section A.2)."
+    },
+    "streamSeq": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/streamSeq"
+    },
+    "eventTime": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/time.schema.json#/$defs/utcDateTime",
+      "description": "The time the Gateway process received/derived this record. NEVER claimed as the exact physical instant a contact changed (revised plan section A.2, test O02)."
+    },
+    "observedAt": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/time.schema.json#/$defs/utcDateTime",
+      "description": "For most messages equal to eventTime; kept distinct for the case where a value is derived/re-emitted later than it was originally observed (e.g. backlog replay), so a consumer can tell 'when this fact was true' from 'when it was decided/re-sent'."
+    },
+    "origin": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/origin"
+    },
+    "sourceRef": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "captureSession": {
+          "type": "string"
+        },
+        "sourceOffset": {
+          "type": [
+            "integer",
+            "string"
+          ]
+        },
+        "decoderVersion": {
+          "type": "string"
+        },
+        "signalConfigVersion": {
+          "type": "string"
+        }
+      },
+      "description": "Present for LIVE/IMPORT origin so a crash-recovery or reprocessing job can locate exactly which raw record this came from (revised plan section A.6/B.6, test G07)."
+    },
+    "clockQuality": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/clockQuality"
+    },
+    "clockQualityDetail": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/time.schema.json#/$defs/clockQualityBlock"
+    }
+  }
+}

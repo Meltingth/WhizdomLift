@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lms-ng.internal/contracts/2.0/mqtt/event.schema.json",
+  "title": "LMS-NG MQTT event v2",
+  "description": "Published to events/elevators/{elevatorId} (elevator-scoped) or events/gateway (elevatorId null). Scope is narrower than v1: routine SIGNAL_CHANGE is now carried in state.changes[] and must not be re-published here (docs/preflight/CONTRACT_BASELINE_DIFF.md section 3). This topic carries lifecycle/quality events.",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "https://lms-ng.internal/contracts/2.0/mqtt/envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "required": [
+        "eventType",
+        "data"
+      ],
+      "properties": {
+        "messageType": {
+          "const": "event"
+        },
+        "eventType": {
+          "type": "string",
+          "enum": [
+            "BOARD_RESTART",
+            "BOARD_CLOCK_WRAPPED",
+            "IDENTITY_REBOUND",
+            "IDENTITY_REFUSED",
+            "LINK_LOST",
+            "DATA_QUALITY_CHANGED",
+            "POSITION_BIT_SUSPECT_RAISED",
+            "POSITION_BIT_SUSPECT_CLEARED",
+            "GATEWAY_STARTED",
+            "GATEWAY_STOPPED",
+            "STORAGE_PRESSURE"
+          ]
+        },
+        "data": {
+          "type": "object",
+          "description": "Shape depends on eventType; validated per-branch below."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "eventType": {
+                "const": "BOARD_RESTART"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "lastBoardMs",
+                  "newBoardMs",
+                  "reason"
+                ],
+                "properties": {
+                  "lastBoardMs": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "newBoardMs": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "CLOCK_BACKWARDS",
+                      "FRESH_BOOT_UNDER_WALL_CLOCK"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "eventType": {
+                "const": "IDENTITY_REBOUND"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "fromPort",
+                  "toPort"
+                ],
+                "properties": {
+                  "fromPort": {
+                    "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/comPort"
+                  },
+                  "toPort": {
+                    "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/comPort"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "eventType": {
+                "const": "IDENTITY_REFUSED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "elevatorId": {
+                "type": "null"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "port",
+                  "claimed"
+                ],
+                "properties": {
+                  "port": {
+                    "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/comPort"
+                  },
+                  "claimed": {
+                    "type": "string",
+                    "description": "What LIFT= value the board on this port announced, e.g. '0', '7', or 'none' if it never announced at all."
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "eventType": {
+                "const": "DATA_QUALITY_CHANGED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "data": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "rejectedLines"
+                ],
+                "properties": {
+                  "rejectedLines": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "unevaluatedProperties": false
+}

@@ -1,0 +1,214 @@
+specVersion: '2.0'
+status: DRAFT
+supersedes: v1 baseline (docs/revisions/.../reference/legacy-contracts/LMS_NG_MQTT_Topic_Specification_v1.yaml)
+seeAlso: docs/preflight/CONTRACT_BASELINE_DIFF.md section 1-3, 7
+
+protocol:
+  mqttVersion: '5.0'
+  transport: TLS/TCP (P0-SERVER; plain TCP permitted only on an isolated loopback dev/test
+    bridge per revised plan section C.2 -- "1883 อนุญาตได้เฉพาะ isolated test bridge/loopback")
+  defaultPort: 8883
+  clientIdPattern: 'gw-{gatewayCode}'  # e.g. gw-GW-WHZ-01
+  keepAliveSeconds: 30
+  sessionExpirySeconds: 86400
+  note: >
+    MQTT 5 chosen outright for this candidate rather than the v1 baseline's
+    "5.0 preferred; 3.1.1 compatible" -- the presence/LWT preparedAt semantics and the
+    per-message properties this contract relies on need MQTT 5's user properties, and
+    maintaining two wire behaviors was never validated in the v1 baseline either.
+
+topicRoots:
+  real: 'lms/v2/{organizationId}/{siteId}/{gatewayId}'
+  test: 'lms-sim/v2/{organizationId}/{testSiteId}/{simGatewayId}'
+  note: >
+    Two distinct roots, not one root with an origin field alone, so a broker ACL rule can
+    deny cross-writes by topic pattern (enforced at the broker, not only trusted from the
+    payload) -- see docs/preflight/CONTRACT_BASELINE_DIFF.md section 1 and test S01. Demo
+    Mode never publishes to either root (revised plan section C.4).
+
+identityAndAcl:
+  gatewayPublish:
+    - status/presence
+    - status/heartbeat
+    - telemetry/elevators/+/state
+    - telemetry/elevators/+/snapshot
+    - events/elevators/+
+    - events/gateway
+    - diagnostics/network
+  gatewaySubscribe:
+    - delivery/acks
+  serverPublish:
+    - delivery/acks
+  serverSubscribe:
+    - +/+/+/status/#
+    - +/+/+/telemetry/#
+    - +/+/+/events/#
+    - +/+/+/diagnostics/#
+  note: >
+    Command topics (request/result) and config topics (desired/reported) are DEFERRED in
+    this candidate -- not present in this ACL table. See
+    docs/preflight/CONTRACT_BASELINE_DIFF.md section 3 for the explicit reasoning
+    (P5-DRY-RUN scope, shape depends on work not yet done). A simulator/TEST principal's ACL
+    is scoped identically but restricted to the lms-sim root and its own registered
+    TEST elevator/gateway IDs only -- it can never match a REAL-root pattern (test S01).
+
+messageEnvelope:
+  jsonSchema: ../json-schema/mqtt/envelope.schema.json
+  required:
+    - schemaVersion
+    - messageType
+    - messageId
+    - organizationId
+    - siteId
+    - gatewayId
+    - elevatorId
+    - producerId
+    - producerEpoch
+    - bootId
+    - streamId
+    - streamSeq
+    - eventTime
+    - observedAt
+    - origin
+    - clockQuality
+  example: ./examples/state.w-02.json
+  breakingChangesFromV1:
+    - 'sequence (plain integer, per-bootId) -> streamId + producerId + producerEpoch + streamSeq (decimal string, durable across restarts)'
+    - 'added: origin, sourceRef, clockQuality (absent in v1 entirely)'
+    - 'eventTime split into eventTime (receipt time) + observedAt (documented as receipt-derived, never claimed as the physical event instant)'
+
+topics:
+  - topic: '.../status/presence'
+    direction: gateway->broker
+    qos: 1
+    retain: true
+    purpose: >
+      Merges v1's separate status/birth and status/will retained topics into one, carrying
+      a monotonic connectionSeq so two retained values can never disagree (revision R09,
+      test O06).
+    jsonSchema: ../json-schema/mqtt/presence.schema.json
+    payloadExample:
+      state: ONLINE
+      connectionId: <uuid>
+      connectionSeq: 7
+      reason: CONNECT
+
+  - topic: '.../status/heartbeat'
+    direction: gateway->broker
+    qos: 0
+    retain: false
+    intervalSeconds: 10
+    purpose: Liveness only -- garbage/noise on this topic must never refresh a lift's data
+      freshness clock (test G11).
+    jsonSchema: ../json-schema/mqtt/heartbeat.schema.json
+
+  - topic: '.../telemetry/elevators/{elevatorId}/state'
+    direction: gateway->broker
+    qos: 1
+    retain: false
+    purpose: >
+      Durable, ordered telemetry stream. NOT retained (breaking change from v1, which
+      retained this same topic) -- retained-value replay on subscribe would be
+      indistinguishable from durable backlog replay landing on the same topic. See
+      telemetry/.../snapshot below for the retained cache-hint equivalent.
+    jsonSchema: ../json-schema/mqtt/state.schema.json
+    payloadExample: ./examples/state.w-02.json
+
+  - topic: '.../telemetry/elevators/{elevatorId}/snapshot'
+    direction: gateway->broker
+    qos: 1
+    retain: true
+    purpose: >
+      Latest-value cache hint only, republished immediately after every enqueued state
+      record. Losing it costs nothing. MUST NOT be used to replay backlog (test I10).
+    jsonSchema: ../json-schema/mqtt/snapshot.schema.json
+
+  - topic: '.../events/elevators/{elevatorId}'
+    direction: gateway->broker
+    qos: 1
+    retain: false
+    purpose: >
+      Lifecycle/quality events that are NOT redundant with state.changes[] (routine
+      SIGNAL_CHANGE now lives inside the state record's own transaction, so publishing it
+      again here would double-count -- see docs/preflight/CONTRACT_BASELINE_DIFF.md section 3).
+    jsonSchema: ../json-schema/mqtt/event.schema.json
+
+  - topic: '.../events/gateway'
+    direction: gateway->broker
+    qos: 1
+    retain: false
+    purpose: Gateway-process-wide lifecycle events (reboot, identity change, storage
+      pressure), separated from elevator-scoped events so a per-elevator event filter
+      never has to also exclude gateway-wide noise.
+    jsonSchema: ../json-schema/mqtt/event.schema.json
+
+  - topic: '.../diagnostics/network'
+    direction: gateway->broker
+    qos: 0
+    retain: false
+    intervalSeconds: 60
+    purpose: Engineering counters. Explicitly not evidence of live telemetry.
+    jsonSchema: ../json-schema/mqtt/diagnostics-network.schema.json
+
+  - topic: '.../delivery/acks'
+    direction: server->gateway
+    qos: 1
+    retain: false
+    purpose: >
+      Application-level acknowledgement that a durable telemetry record reached
+      DB_COMMITTED. NOT a lift command. Only the Server principal may publish here (ACL
+      enforced at the broker); a spoofed ack from any other principal must not be able to
+      clear a Gateway's outbox (test I12).
+    jsonSchema: ../json-schema/mqtt/ack.schema.json
+
+deferred:
+  - topics: ['.../commands/{commandId}/request', '.../commands/{commandId}/result']
+    reason: P5-DRY-RUN scope; shape depends on the DRY_RUN result-code design
+      (SIMULATED_SUCCESS / DRY_RUN_COMPLETED, notSentToHardware=true) not yet worked out.
+  - topics: ['.../config/desired', '.../config/reported']
+    reason: No consumer of a config-push mechanism exists yet in this round's scope
+      (P1-OFFLINE's config file, config/lms_gateway_agent.example.json, is local-file-based).
+
+deliveryRules:
+  ordering: >
+    A message's durable ordering identity is (producerId, producerEpoch, streamId,
+    streamSeq) -- NOT (gatewayId, bootId, sequence) as in v1. bootId is diagnostic-only.
+    A plain process restart does not change producerEpoch; only an explicit re-enrollment
+    (after e.g. local durable-storage loss) does (revised plan section A.6, test O03).
+  offlineBuffer: >
+    Gateway persists QoS1 telemetry/events in a local durable outbox. Capacity target is
+    calculated, not a flat number: 72 hours at 2x the measured average rate, plus tested
+    burst headroom and at least 20% reserved disk (revised plan section A.5). This round's
+    measured baseline rate (docs/preflight/BASELINE_INVENTORY.md section... see
+    MACHINE_CAPABILITIES / A-DRAFT evidence) is ~4,400 lines/hour fleet-wide across the 4
+    currently-commissioned real lifts -- the actual capacity math is P1-OFFLINE work, not
+    finalized in this contract round.
+  replay: >
+    On reconnect, publish durable backlog oldest-first with each record's ORIGINAL
+    eventTime/observedAt (never rewritten to "now"). A fresh-data lane and a bounded
+    backlog-drain lane are scheduled fairly -- fresh data does not wait for the entire
+    backlog to drain, and backlog/every-lift is guaranteed some throughput so nothing
+    starves (revised plan section A.5, test I09).
+  staleness: >
+    A retained presence/snapshot value is never trusted as current without independent
+    fresh proof (revised plan section A.4's AWAITING_FRESH_PROOF state).
+  acknowledgement: >
+    MQTT PUBACK acknowledges transport delivery between peers ([T1], OASIS MQTT 5.0 spec)
+    -- it is explicitly NOT treated as a database-commit guarantee. See delivery/acks above
+    and revised plan section A.5 for the full PENDING -> TRANSPORT_ACKED -> DB_COMMITTED
+    state machine, which is the headline correction this candidate makes over the v1
+    baseline (test I01, I02).
+  payloadEncoding: UTF-8 JSON.
+
+security:
+  tls: 'TLS 1.2+; TLS 1.3 preferred'
+  authentication: 'Per-principal credentials (Gateway, TEST simulator, ingestion Server,
+    viewer) generated outside git; mTLS remains a target for a later hardening round, not
+    claimed as already in place here (revised plan section C.2)'
+  authorization: 'Per-client topic ACL rendered with CONCRETE UUIDs/topic segments from the
+    registry, never copied wildcard examples that do not match real registered identities
+    (revised plan section C.2)'
+  rotation: 'Certificate/token rotation without device reimage -- design target, not built
+    in this contract-only round'
+  audit: 'Broker connect/disconnect/auth-failure and delivery-ack events forwarded to
+    centralized logs -- P0-SERVER/P6 scope'

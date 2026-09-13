@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lms-ng.internal/contracts/2.0/mqtt/snapshot.schema.json",
+  "title": "LMS-NG MQTT snapshot v2",
+  "description": "Published RETAINED to telemetry/elevators/{elevatorId}/snapshot immediately after every enqueued state record. A cache hint only -- 'what does the broker currently believe the latest state is', not an event log. Losing it costs nothing because it is always republished after the next accepted state. MUST NOT be used to replay backlog (revised plan section A.3, test I10): messageId/streamSeq/payloadHash here must match a durable state record that was already enqueued through the normal path.",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "https://lms-ng.internal/contracts/2.0/mqtt/envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "required": [
+        "elevatorId",
+        "payloadHash",
+        "state"
+      ],
+      "properties": {
+        "messageType": {
+          "const": "snapshot"
+        },
+        "elevatorId": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+        },
+        "payloadHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Hash of the referenced state record's payload, so a consumer can confirm this retained snapshot corresponds to a specific durable record rather than trusting it blindly."
+        },
+        "state": {
+          "type": "object",
+          "description": "Same shape as the state message's payload fields (floorRaw, direction, motion, statusPoints, etc.) -- duplicated here rather than $ref'd to state.schema.json's allOf chain to avoid re-requiring envelope fields a retained cache copy does not need to restate."
+        }
+      }
+    }
+  ],
+  "unevaluatedProperties": false
+}

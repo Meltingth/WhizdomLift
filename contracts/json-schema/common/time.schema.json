@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lms-ng.internal/contracts/2.0/common/time.schema.json",
+  "title": "LMS-NG shared time definitions",
+  "$defs": {
+    "utcDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339, UTC (Z offset). UI layers convert to Asia/Bangkok for display; storage and wire format are always UTC."
+    },
+    "clockQualityBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "quality"
+      ],
+      "properties": {
+        "quality": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/clockQuality"
+        },
+        "offsetMs": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Measured offset against NTP if known; null when quality is UNCERTAIN."
+        },
+        "uncertaintyMs": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

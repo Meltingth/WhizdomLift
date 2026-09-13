@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "2.0",
+  "messageType": "presence",
+  "messageId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+  "organizationId": "11111111-1111-4111-8111-111111111111",
+  "siteId": "22222222-2222-4222-8222-222222222222",
+  "gatewayId": "33333333-3333-4333-8333-333333333333",
+  "elevatorId": null,
+  "producerId": "55555555-5555-4555-8555-555555555555",
+  "producerEpoch": 1,
+  "bootId": "66666666-6666-4666-8666-666666666666",
+  "streamId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+  "streamSeq": "3",
+  "eventTime": "2026-09-13T11:40:02.000Z",
+  "observedAt": "2026-09-13T11:40:02.000Z",
+  "origin": "LIVE",
+  "clockQuality": "SYNCED",
+
+  "state": "OFFLINE",
+  "connectionId": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+  "connectionSeq": 7,
+  "reason": "LWT",
+  "preparedAt": "2026-09-13T11:38:30.000Z"
+}

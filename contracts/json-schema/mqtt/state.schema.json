@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lms-ng.internal/contracts/2.0/mqtt/state.schema.json",
+  "title": "LMS-NG MQTT state v2",
+  "description": "Published to telemetry/elevators/{elevatorId}/state on every accepted debounced change and on the board's periodic re-emit. NOT retained on this topic (see snapshot.schema.json for the retained latest-value copy). The Edge sends floorRaw and real contact readings ONLY -- floorDisplay/floorKind/floorProfileVersion are Backend-computed and never appear here (revised plan section A.7, corrects a v1-baseline inconsistency documented in docs/preflight/CONTRACT_BASELINE_DIFF.md section 4).",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "https://lms-ng.internal/contracts/2.0/mqtt/envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "required": [
+        "elevatorId",
+        "floorRaw",
+        "direction",
+        "motion",
+        "operatingMode",
+        "statusPoints",
+        "dataQuality",
+        "raw",
+        "changes",
+        "reemit"
+      ],
+      "properties": {
+        "messageType": {
+          "const": "state"
+        },
+        "elevatorId": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+        },
+        "floorRaw": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/floorRaw"
+        },
+        "direction": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/direction"
+        },
+        "motion": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/motion"
+        },
+        "operatingMode": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/operatingMode"
+        },
+        "statusPoints": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "RUNNING": {
+              "type": "boolean"
+            },
+            "SAFETY_DEVICE": {
+              "type": "boolean",
+              "description": "true means the physical contact reads closed. This is NOT a certification that the lift is safe -- it is a raw contact reading (revised plan section A.7)."
+            },
+            "FIRE_OPERATION": {
+              "type": "boolean",
+              "description": "Present only when capabilities.FIRE_OPERATION.available is true. Real building: never present today -- FIRE pins have never been physically activated/identified."
+            },
+            "FIRE_RETURN": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "RUNNING",
+            "SAFETY_DEVICE"
+          ],
+          "description": "Only keys that actually exist on this elevator's wiring are present -- a real elevator never carries a DOOR_OPEN key (there is no door signal on this hardware). Simulated elevators may include DOOR_OPEN."
+        },
+        "capabilities": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "available"
+            ],
+            "properties": {
+              "available": {
+                "type": "boolean"
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Per signal-point capability flags, e.g. {\"FIRE_OPERATION\": {\"available\": false, \"reason\": \"pin not identified\"}}. Lets a consumer distinguish 'this signal is false' from 'this signal does not exist on this elevator'."
+        },
+        "dataQuality": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "flags"
+          ],
+          "properties": {
+            "flags": {
+              "type": "array",
+              "items": {
+                "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/dataQualityFlag"
+              },
+              "uniqueItems": true
+            },
+            "rejectedLines": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "positionBitSuspect": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "bit": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 5
+                },
+                "consecutiveSilentChanges": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "description": "Diagnostic candidate only (POSITION_BIT_SUSPECT flag). Never auto-corrects floorRaw and never alone raises a SENSOR fault alarm without independent/operator confirmation (revised plan section B.5, test G13)."
+            }
+          }
+        },
+        "raw": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "maskHex",
+            "boardMs",
+            "port"
+          ],
+          "properties": {
+            "maskHex": {
+              "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/maskHex"
+            },
+            "boardMs": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295,
+              "description": "Board's own millis() counter, uint32, wraps at 2^32 (~49.7 days) -- a wrap is NOT a reboot (test G06)."
+            },
+            "port": {
+              "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/comPort"
+            },
+            "firmware": {
+              "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/firmwareVersion"
+            }
+          }
+        },
+        "changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "changeId",
+              "point",
+              "prev",
+              "next"
+            ],
+            "properties": {
+              "changeId": {
+                "type": "string",
+                "description": "Deterministic: derived from this message's messageId + array index, so re-delivery of the same state record yields byte-identical changeIds (revised plan section A.3, avoids double-counting against the events topic)."
+              },
+              "point": {
+                "type": "string",
+                "enum": [
+                  "FLOOR",
+                  "DIRECTION",
+                  "RUNNING",
+                  "SAFETY_DEVICE",
+                  "FIRE_OPERATION",
+                  "FIRE_RETURN"
+                ]
+              },
+              "prev": {},
+              "next": {}
+            }
+          },
+          "description": "Per-signal changes derived alongside this state record, committed atomically with it by the Backend in one transaction. This is what makes the removed per-signal-point MQTT topic (v1 baseline) unnecessary -- see docs/preflight/CONTRACT_BASELINE_DIFF.md section 3."
+        },
+        "reemit": {
+          "type": "boolean",
+          "description": "true when this record's raw mask is unchanged from the previous one -- i.e. it is the board's periodic re-emit (idle baseline) or the boot-time baseline, not an actual signal change."
+        }
+      }
+    }
+  ],
+  "unevaluatedProperties": false
+}

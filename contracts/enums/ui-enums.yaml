@@ -1,0 +1,98 @@
+version: 2.0.0-draft.1
+status: DRAFT
+approvedBy: null
+approvedAt: null
+note: >
+  Thai strings marked (owner) are fixed decisions carried forward unchanged from the
+  Backend Plan v1.3 / prior sessions -- not proposed here, not open for silent rewording.
+  Everything else is a proposal for G-A review. See docs/preflight/CONTRACT_BASELINE_DIFF.md
+  section (enums) for what changed vs the (nonexistent) v1 UI-enum baseline -- there was none
+  to diff against, this is drafted directly from Backend Plan sections 5/6/13 and revised
+  plan section A.11.
+
+connectionState:
+  ONLINE:              { label: ออนไลน์,        tone: ok }
+  AWAITING_FRESH_PROOF: { label: กำลังยืนยันสถานะ, tone: info }
+  STALE:               { label: ข้อมูลค้าง,      tone: warning }
+  INTERFACE_NO_RXTX:   { label: ไม่มีสัญญาณ,     tone: warning }
+  GATEWAY_OFFLINE:     { label: เกตเวย์ออฟไลน์,  tone: critical }
+  PENDING_INSTALL:     { label: "รอติดตั้ง", tone: neutral, note: "(owner) — ใช้เมื่อยังไม่ติดตั้งจริงเท่านั้น, ไม่ใช้แทน OUT_OF_SERVICE" }
+  NOT_COMMISSIONED:    { label: ยังไม่รับเข้าระบบ, tone: neutral }
+  OUT_OF_SERVICE:      { label: ปิดใช้งาน,      tone: neutral, note: "distinct axis from commissioning (R12) — this is what W-04 is today" }
+  UNKNOWN:             { label: ไม่ทราบสถานะ,   tone: neutral }
+
+freshnessBand:
+  FRESH: { label: "สด" }
+  AGING: { label: "เริ่มค้าง" }
+  STALE: { label: "ค้าง" }
+  format: "↻ {ageSec}s"
+
+direction:
+  UP:      { label: ขึ้น }
+  DOWN:    { label: ลง }
+  IDLE:    { label: หยุดนิ่ง }
+  UNKNOWN: { label: ไม่ทราบ }
+
+motion:
+  RUNNING: { label: กำลังวิ่ง }
+  STOPPED: { label: จอดนิ่ง }
+  UNKNOWN: { label: ไม่ทราบ }
+
+floorKind:
+  LANDING:      { display: label }
+  TRANSIT:      { display: "code {n}" }
+  UNCALIBRATED: { display: "code {n}", note: "never a guessed building label (test U04)" }
+groundLabel: "1"   # (owner) — ground floor displays as "1", never "G"
+
+operatingMode:
+  NORMAL:  { label: ปกติ }
+  FIRE:    { label: อัคคีภัย }
+  UNKNOWN: { label: ไม่ทราบ, note: "REAL elevators show this until FIRE pins are physically activated/identified — never NORMAL-by-default" }
+
+statusPoint:
+  RUNNING:        { label: กำลังวิ่ง }
+  SAFETY_DEVICE:  { label: วงจรนิรภัย, note: "true = หน้าสัมผัสปิด, ไม่ใช่ใบรับรองความปลอดภัย" }
+  FIRE_OPERATION: { label: ปฏิบัติการอัคคีภัย }
+  FIRE_RETURN:    { label: กลับชั้นอัคคีภัย }
+  DOOR_OPEN:      { label: ประตูเปิด, note: "simulated/demo elevators only — no door signal exists on real hardware" }
+
+dataQualityFlag:
+  REJECTED_LINES:                { label: บรรทัดข้อมูลผิดรูปแบบ }
+  POSITION_BIT_SUSPECT:          { label: สงสัยบิตตำแหน่งขาด, note: "diagnostic candidate, not a confirmed fault (test G13)" }
+  DIRECTION_CONFLICT:            { label: ทิศทางขัดแย้ง }
+  TIME_UNCERTAIN:                { label: เวลาไม่แน่ชัด }
+  CAPTURE_OK_DELIVERY_DEGRADED:  { label: เก็บข้อมูลปกติ ส่งข้อมูลล่าช้า }
+
+alarmSeverity:
+  CRITICAL: { label: วิกฤต }
+  MAJOR:    { label: รุนแรง }
+  MINOR:    { label: เล็กน้อย }
+  WARNING:  { label: เตือน }
+
+alarmState:
+  ACTIVE: { label: ยังไม่รับทราบ }
+  ACKED:  { label: รับทราบแล้ว }
+  CLEARED: { label: สิ้นสุดแล้ว }
+  CLOSED: { label: ปิดแล้ว }
+
+commandMode:
+  DRY_RUN: { chip: "DRY RUN" }
+  LIVE:    { chip: "LIVE", note: "never reachable for a REAL-origin elevator in this POC" }
+
+source:
+  live: { chip: null }
+  demo:
+    chip: "DEMO"
+    banner: "โหมดสาธิต — ข้อมูลจำลองเพื่อการนำเสนอ"   # (owner)
+  button: "สาธิต"   # (owner)
+
+role:
+  operator:    { label: เจ้าหน้าที่ }
+  supervisor:  { label: หัวหน้างาน }
+  technician:  { label: ช่างเทคนิค }
+  admin:       { label: ผู้ดูแลระบบ }
+
+chrome:
+  brandWordmark: "The Whizdom"        # (owner)
+  alarmCenterTitle: "ศูนย์สัญญาณเตือน"   # (owner)
+  kpiOnline: "ติดตามข้อมูล {online}/{commissioned}"

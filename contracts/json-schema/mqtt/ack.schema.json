@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lms-ng.internal/contracts/2.0/mqtt/ack.schema.json",
+  "title": "LMS-NG MQTT delivery ack v2",
+  "description": "Published Server -> Gateway to delivery/acks/{gatewayId}, QoS1, not retained. This is NOT a lift command -- it is the application-level acknowledgement that a durable telemetry record reached DB_COMMITTED, sent only after the SQL transaction actually commits (revised plan section A.5, the plan's headline fix per [T1]: MQTT PUBACK is a transport-layer peer acknowledgement, not a database guarantee). Only the Server principal may publish here (ACL, test I12: a spoofed ack from any other principal must not be able to clear a Gateway's outbox).",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "https://lms-ng.internal/contracts/2.0/mqtt/envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "required": [
+        "ackId",
+        "result",
+        "targetMessageId",
+        "targetStreamId",
+        "targetStreamSeq",
+        "targetPayloadHash",
+        "committedAt"
+      ],
+      "properties": {
+        "messageType": {
+          "const": "ack"
+        },
+        "ackId": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "DB_COMMITTED",
+            "ALREADY_COMMITTED",
+            "REJECTED_INVALID_SCHEMA",
+            "REJECTED_WRONG_BINDING",
+            "REJECTED_UNKNOWN_PRODUCER",
+            "REJECTED_IDENTITY_PAYLOAD_CONFLICT"
+          ],
+          "description": "The four REJECTED_* values are NACKs -- they mean the original message was NOT considered delivered and the Gateway must not clear it from its outbox on receipt of one of these; it goes to a dead-letter/quarantine state instead (revised plan section A.5)."
+        },
+        "targetMessageId": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid",
+          "description": "The messageId of the record this ack/nack refers to."
+        },
+        "targetStreamId": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+        },
+        "targetStreamSeq": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/streamSeq"
+        },
+        "targetPayloadHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Hash of the original payload the Gateway sent, echoed back so the Gateway can confirm this ack matches the exact bytes it retried, not an earlier/different record under the same identity (guards against the identity/payload-conflict case, test I08)."
+        },
+        "committedAt": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/time.schema.json#/$defs/utcDateTime"
+        },
+        "serverDataEpoch": {
+          "type": "string",
+          "description": "The Backend's current data epoch identifier. Changes only after an approved restore-from-backup runbook (revised plan section A.5/C.6) -- present so a Gateway can detect it is talking to a server that just underwent a restore."
+        }
+      }
+    }
+  ],
+  "unevaluatedProperties": false
+}

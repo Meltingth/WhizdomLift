@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lms-ng.internal/contracts/2.0/ws/envelope.schema.json",
+  "title": "LMS-NG WebSocket envelope v2",
+  "description": "No v1 baseline exists for this -- the v1 OpenAPI document only issued a realtime token, it never specified WS message shapes (docs/preflight/CONTRACT_BASELINE_DIFF.md section 6). Drafted directly from revised plan section A.10.",
+  "type": "object",
+  "required": [
+    "v",
+    "type",
+    "source",
+    "siteId",
+    "sentAt",
+    "data"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "v": {
+      "const": 2
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "snapshot",
+        "elevator.state",
+        "elevator.status",
+        "gateway.status",
+        "source.changed",
+        "error",
+        "subscribe",
+        "beacon",
+        "pong"
+      ]
+    },
+    "source": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/source"
+    },
+    "siteId": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+    },
+    "serverInstanceId": {
+      "type": "string",
+      "description": "Identifies which running server process produced this frame. A change mid-session (server restart) is a signal the client must resnapshot (revised plan section A.10)."
+    },
+    "datasetEpoch": {
+      "type": "string",
+      "description": "Changes after a restore-from-backup runbook. A client seeing a new value must treat all held state as potentially stale and resnapshot."
+    },
+    "subscriptionId": {
+      "type": "string",
+      "description": "Present on server->client frames once a subscription is established; echoed by the client on subscribe-scoped messages."
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[0-9]+$",
+      "description": "Monotonic per-asset revision (decimal string, same overflow reasoning as streamSeq). A client applies a delta only if its revision is greater than the last one it held for that asset -- this is the mechanism that makes backlog replay unable to move a card backwards (test I10, O04)."
+    },
+    "sentAt": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/time.schema.json#/$defs/utcDateTime"
+    },
+    "msgId": {
+      "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+    },
+    "data": {
+      "description": "Shape depends on type; see ws/messages.schema.json for the per-type validation."
+    }
+  }
+}

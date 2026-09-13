@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2.0",
+  "messageType": "state",
+  "messageId": "8f14e45f-ceea-467e-90a3-b3e3b1d3e9a1",
+  "organizationId": "11111111-1111-4111-8111-111111111111",
+  "siteId": "22222222-2222-4222-8222-222222222222",
+  "gatewayId": "33333333-3333-4333-8333-333333333333",
+  "elevatorId": "44444444-4444-4444-8444-444444444444",
+  "producerId": "55555555-5555-4555-8555-555555555555",
+  "producerEpoch": 1,
+  "bootId": "66666666-6666-4666-8666-666666666666",
+  "streamId": "77777777-7777-4777-8777-777777777777",
+  "streamSeq": 184221,
+  "eventTime": "2026-09-13T11:34:18.460Z",
+  "observedAt": "2026-09-13T11:34:18.460Z",
+  "origin": "LIVE",
+  "clockQuality": "SYNCED",
+
+  "floorRaw": "23",
+  "direction": "UP",
+  "motion": "RUNNING",
+  "operatingMode": "NORMAL",
+  "statusPoints": { "RUNNING": true, "SAFETY_DEVICE": true },
+  "dataQuality": { "flags": [], "rejectedLines": 0, "positionBitSuspect": null },
+  "raw": { "maskHex": "FFFFFFA3D3FFF", "boardMs": 5678056, "port": "COM22", "firmware": "1.2.2" },
+  "changes": [],
+  "reemit": false
+}

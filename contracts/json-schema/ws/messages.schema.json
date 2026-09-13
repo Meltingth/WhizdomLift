@@ -1,0 +1,373 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lms-ng.internal/contracts/2.0/ws/messages.schema.json",
+  "title": "LMS-NG WebSocket message data shapes v2",
+  "description": "One $defs entry per envelope.type value, referenced by JSON Pointer (#/$defs/<name>); a validator selects the def by reading 'type' from the enclosing ws/envelope.schema.json frame, rather than this file guessing the shape from 'data' alone via oneOf (a shape-only discriminator is fragile -- several of these object shapes are structurally compatible with each other, e.g. a status delta and a gateway status both have only a couple of required keys, so oneOf-by-shape risks 'matches more than one schema' false failures). See tests/contract/test_schemas.py for the dispatch table this implies. ElevatorStatus/GatewayStatus are also reused by the OpenAPI document's component schemas of the same name -- kept in sync by hand in this round (no codegen exists yet, recorded as an open item in the G-A decision packet).",
+  "$defs": {
+    "elevatorStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "elevatorId",
+        "elevatorCode",
+        "connectionState",
+        "commissioningStatus",
+        "serviceStatus",
+        "monitoringEnabled",
+        "floorRaw",
+        "floorDisplay",
+        "floorKind",
+        "floorProfileVersion",
+        "direction",
+        "motion",
+        "operatingMode",
+        "statusPoints",
+        "capabilities",
+        "dataQuality",
+        "origin",
+        "viewMode",
+        "sourceObservedAt",
+        "serverReceivedAt",
+        "serverStateRevision"
+      ],
+      "properties": {
+        "elevatorId": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+        },
+        "elevatorCode": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/elevatorCode"
+        },
+        "siteId": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+        },
+        "connectionState": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/connectionState"
+        },
+        "commissioningStatus": {
+          "type": "string",
+          "enum": [
+            "COMMISSIONED",
+            "NOT_COMMISSIONED",
+            "DISCOVERED_NOT_COMMISSIONED"
+          ],
+          "description": "Independent of serviceStatus -- R12: a lift can be OUT_OF_SERVICE while still COMMISSIONED (W-04's actual situation), or a board can appear and be DISCOVERED_NOT_COMMISSIONED without monitoringEnabled auto-flipping to true (test G14, U05)."
+        },
+        "serviceStatus": {
+          "type": "string",
+          "enum": [
+            "IN_SERVICE",
+            "OUT_OF_SERVICE",
+            "UNKNOWN"
+          ]
+        },
+        "monitoringEnabled": {
+          "type": "boolean"
+        },
+        "transportState": {
+          "type": "string",
+          "enum": [
+            "OK",
+            "AGING",
+            "NO_RXTX",
+            "DISCONNECTED"
+          ]
+        },
+        "freshnessSec": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "quality": {
+          "type": "array",
+          "items": {
+            "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/dataQualityFlag"
+          }
+        },
+        "floorRaw": {
+          "oneOf": [
+            {
+              "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/floorRaw"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "floorDisplay": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Backend-computed label, e.g. '20' or 'B1'; for floorKind UNCALIBRATED/TRANSIT this is a mono 'code N' string, never a guessed building label (test U04)."
+        },
+        "floorKind": {
+          "oneOf": [
+            {
+              "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/floorKind"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "floorProfileVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "displayAnchor": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Schematic shaft position for rendering, separate from floorDisplay -- a profile with unknown physical positions (W-05's middle floors) leaves this null and the HUD draws a raw-code track instead of a guessed building position (revised plan section A.7, D.3 rule 5)."
+        },
+        "direction": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/direction"
+        },
+        "motion": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/motion"
+        },
+        "operatingMode": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/operatingMode"
+        },
+        "statusPoints": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        },
+        "capabilities": {
+          "type": "object"
+        },
+        "dataQuality": {
+          "type": "object"
+        },
+        "activeAlarmCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "origin": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/origin"
+        },
+        "viewMode": {
+          "type": "string",
+          "enum": [
+            "LIVE",
+            "TEST",
+            "DEMO",
+            "HISTORY"
+          ]
+        },
+        "producerEpoch": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "sourceObservedAt": {
+          "oneOf": [
+            {
+              "$ref": "https://lms-ng.internal/contracts/2.0/common/time.schema.json#/$defs/utcDateTime"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "serverReceivedAt": {
+          "oneOf": [
+            {
+              "$ref": "https://lms-ng.internal/contracts/2.0/common/time.schema.json#/$defs/utcDateTime"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "serverStateRevision": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        }
+      }
+    },
+    "gatewayStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gatewayId",
+        "gatewayCode",
+        "connectionState"
+      ],
+      "properties": {
+        "gatewayId": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+        },
+        "gatewayCode": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/gatewayCode"
+        },
+        "connectionState": {
+          "type": "string",
+          "enum": [
+            "ONLINE",
+            "AWAITING_FRESH_PROOF",
+            "OFFLINE",
+            "UNKNOWN"
+          ]
+        },
+        "lastHeartbeatAt": {
+          "oneOf": [
+            {
+              "$ref": "https://lms-ng.internal/contracts/2.0/common/time.schema.json#/$defs/utcDateTime"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "agentVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "snapshotData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "elevators",
+        "gateways",
+        "watermark"
+      ],
+      "properties": {
+        "elevators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/elevatorStatus"
+          }
+        },
+        "gateways": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/gatewayStatus"
+          }
+        },
+        "watermark": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        }
+      }
+    },
+    "elevatorStateData": {
+      "$ref": "#/$defs/elevatorStatus"
+    },
+    "elevatorStatusDeltaData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "elevatorId",
+        "connectionState",
+        "serverStateRevision"
+      ],
+      "properties": {
+        "elevatorId": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+        },
+        "connectionState": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/connectionState"
+        },
+        "serverStateRevision": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        }
+      }
+    },
+    "gatewayStatusData": {
+      "$ref": "#/$defs/gatewayStatus"
+    },
+    "sourceChangedData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source"
+      ],
+      "properties": {
+        "source": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/enums.schema.json#/$defs/source"
+        },
+        "by": {
+          "type": "string"
+        },
+        "at": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/time.schema.json#/$defs/utcDateTime"
+        }
+      }
+    },
+    "errorData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "subscribeData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "siteId"
+      ],
+      "properties": {
+        "siteId": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+        },
+        "elevatorIds": {
+          "type": "array",
+          "items": {
+            "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+          }
+        }
+      }
+    },
+    "beaconData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clientId"
+      ],
+      "properties": {
+        "clientId": {
+          "type": "string"
+        },
+        "screen": {
+          "type": "string"
+        }
+      }
+    },
+    "pongData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "msgId"
+      ],
+      "properties": {
+        "msgId": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid"
+        }
+      }
+    }
+  },
+  "$comment": "This root schema intentionally validates nothing on its own (no top-level type/properties). Consumers resolve one of the $anchors above by envelope.type: snapshot->snapshotData, elevator.state->elevatorStateData, elevator.status->elevatorStatusDeltaData, gateway.status->gatewayStatusData, source.changed->sourceChangedData, error->errorData, subscribe->subscribeData, beacon->beaconData, pong->pongData."
+}

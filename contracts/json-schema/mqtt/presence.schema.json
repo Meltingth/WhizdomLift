@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lms-ng.internal/contracts/2.0/mqtt/presence.schema.json",
+  "title": "LMS-NG MQTT presence v2",
+  "description": "Published RETAINED to status/presence/{gatewayId}. Merges v1's separate birth+will retained topics into one, carrying a monotonic connectionSeq so two retained values can never disagree with each other (revised plan section A.4/R09, test O06). elevatorId is null -- this is gateway-scoped.",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "https://lms-ng.internal/contracts/2.0/mqtt/envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "required": [
+        "elevatorId",
+        "state",
+        "connectionId",
+        "connectionSeq"
+      ],
+      "properties": {
+        "messageType": {
+          "const": "presence"
+        },
+        "elevatorId": {
+          "type": "null"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "ONLINE",
+            "OFFLINE"
+          ]
+        },
+        "connectionId": {
+          "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/uuid",
+          "description": "One per MQTT connection/session. A new connectionId always wins over an old one's stale retained value -- a will from a previous connectionId must never override the current connection's ONLINE presence (test O06)."
+        },
+        "connectionSeq": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Incremented on every connect. Durable, assigned in the same transaction as the connection is registered."
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "CONNECT",
+            "SHUTDOWN",
+            "LWT"
+          ]
+        },
+        "preparedAt": {
+          "oneOf": [
+            {
+              "$ref": "https://lms-ng.internal/contracts/2.0/common/time.schema.json#/$defs/utcDateTime"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "For an LWT-sourced OFFLINE presence: the time the will payload was PREPARED at CONNECT time, never mislabelled as the time the disconnect actually happened (revised plan section A.4, test C08). Null for a live CONNECT/SHUTDOWN presence, where eventTime/observedAt already carry the real time."
+        }
+      }
+    }
+  ],
+  "unevaluatedProperties": false
+}

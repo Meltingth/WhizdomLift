@@ -1,0 +1,36 @@
+﻿# Vendored contract source
+
+**This file is written by `scripts/sync-contracts.ps1 -Update`. Do not hand-edit contracts/**
+in this repo -- the source of truth is the lms-ng repository; this directory is a pinned,
+hash-verified copy.
+
+| Field | Value |
+|---|---|
+| Source repo | lms-ng (local checkout at sync time: `D:\lms-ng`) |
+| Source commit | `unknown (lms-ng has no commits yet at sync time)` |
+| Contract version | `2.0.0-draft.1` |
+| Tree hash (sha256, per contracts-hash.ps1's algorithm, excludes RELEASE_MANIFEST.json and this file) | `sha256:c80b2a1889d0ce8ce56f0f5e8c87634fbe43a37be340d42633c8d854ea5ae225` |
+| Synced at (UTC) | `2026-09-13T13:42:08Z` |
+| Synced by | `scripts/sync-contracts.ps1 -Update` |
+
+## How this hash is computed
+
+Every file under `contracts/` except `RELEASE_MANIFEST.json` (a manifest cannot hash
+itself) and this file (`SOURCE.md`, a per-repo vendoring pointer, not contract content) is
+LF-normalised and SHA-256'd; the per-file hashes are combined into one sorted manifest and
+SHA-256'd again. Identical algorithm in `lms-ng/scripts/contracts-hash.ps1` and in this
+script's own `Get-ContractsTreeHash` function -- reimplemented here rather than shared via
+import specifically so this repo can verify its own vendored copy with no dependency on the
+lms-ng repository being present (ADR-001: no forced submodule, no CI cycle between the repos).
+
+## Verifying this copy has not drifted
+
+```
+scripts\sync-contracts.ps1
+# or explicitly:
+scripts\sync-contracts.ps1 -Check
+```
+
+Compares the pin above against a fresh hash of the files currently on disk. A mismatch means
+someone edited a vendored contract file in this repo directly, which must never happen --
+fix by re-running `-Update` from the correct lms-ng commit, not by hand-editing the pin.

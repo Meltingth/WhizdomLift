@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lms-ng.internal/contracts/2.0/mqtt/heartbeat.schema.json",
+  "title": "LMS-NG MQTT heartbeat v2",
+  "description": "Published QoS0, not retained, not durable, to status/heartbeat/{gatewayId} every 10 seconds. A garbage/noise heartbeat must never refresh a lift's data-freshness clock (revised plan section A.8, test G11) -- lastValidStateAt is tracked separately per elevator and only a valid ST line advances it.",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "https://lms-ng.internal/contracts/2.0/mqtt/envelope.schema.json"
+    },
+    {
+      "type": "object",
+      "required": [
+        "elevatorId",
+        "uptimeSec",
+        "agentVersion",
+        "lifts"
+      ],
+      "properties": {
+        "messageType": {
+          "const": "heartbeat"
+        },
+        "elevatorId": {
+          "type": "null"
+        },
+        "uptimeSec": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "agentVersion": {
+          "type": "string"
+        },
+        "queueDepth": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lifts": {
+          "type": "object",
+          "propertyNames": {
+            "format": "uuid"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "bindState",
+              "lastValidStateAt"
+            ],
+            "properties": {
+              "bindState": {
+                "type": "string",
+                "enum": [
+                  "BOUND",
+                  "SEARCHING",
+                  "REFUSED_LIFT0",
+                  "REFUSED_DUPLICATE",
+                  "HELD_BY_OTHER_READER",
+                  "NOT_CONNECTED",
+                  "FAILED"
+                ]
+              },
+              "lastAnyBytesAt": {
+                "oneOf": [
+                  {
+                    "$ref": "https://lms-ng.internal/contracts/2.0/common/time.schema.json#/$defs/utcDateTime"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "lastValidFrameAt": {
+                "oneOf": [
+                  {
+                    "$ref": "https://lms-ng.internal/contracts/2.0/common/time.schema.json#/$defs/utcDateTime"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "lastValidStateAt": {
+                "oneOf": [
+                  {
+                    "$ref": "https://lms-ng.internal/contracts/2.0/common/time.schema.json#/$defs/utcDateTime"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The only one of the three lastXAt fields that a consumer may use to compute the transport-freshness state (75s AGING / 90s NO_RXTX boundary, revised plan section A.8)."
+              },
+              "port": {
+                "oneOf": [
+                  {
+                    "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/comPort"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "firmware": {
+                "$ref": "https://lms-ng.internal/contracts/2.0/common/ids.schema.json#/$defs/firmwareVersion"
+              },
+              "rejectedLines": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "description": "Keyed by elevatorId (UUID string). One entry per lift this Gateway is configured for, including ones with bindState NOT_CONNECTED (e.g. W-04) -- an absent lift must never fail the whole heartbeat (revised plan section B.4, test G14)."
+        }
+      }
+    }
+  ],
+  "unevaluatedProperties": false
+}

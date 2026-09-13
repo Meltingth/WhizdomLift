@@ -1,0 +1,20 @@
+{
+  "docType": "CONTRACT_RELEASE_MANIFEST",
+  "version": "2.0.0-draft.1",
+  "status": "DRAFT",
+  "approvedBy": null,
+  "approvedAt": null,
+  "supersedes": {
+    "description": "v1 baseline found inside the revision pack, read-only reference",
+    "files": [
+      "reference/legacy-contracts/LMS_NG_MQTT_Topic_Specification_v1.yaml",
+      "reference/legacy-contracts/LMS_NG_OpenAPI_v1.yaml"
+    ]
+  },
+  "note": "This file's approvedBy/approvedAt fields are set to null by design and must stay null until an owner approval is recorded through the process in docs/decisions/G-A_DECISION_PACKET.md. No script in this repository writes non-null values here -- see contracts/README.md 'Change guard' and scripts/validate-contracts.ps1, which specifically checks that this file has NOT been silently flipped to APPROVED.",
+  "bundle": {
+    "note": "The tree hash is computed by scripts/contracts-hash.ps1, which excludes this file (a manifest cannot hash itself without a chicken-and-egg pass) and vendoring-only SOURCE.md files. See docs/evidence/A-DRAFT_report.md for the actual reproducible value produced by running that script in this round -- not hand-typed here, to keep this file honest about what it does and does not attest to on its own.",
+    "hashAlgorithm": "sha256",
+    "hashMethod": "sorted relative paths under contracts/, LF-normalised bytes -- see scripts/contracts-hash.ps1 for the exact, executable definition"
+  }
+}
