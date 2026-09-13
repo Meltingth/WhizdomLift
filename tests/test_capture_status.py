@@ -48,7 +48,11 @@ MOVED = {"1": {"pid": 11, "port": "COM9"}}
 
 CASES = [
     ("healthy",                       dict(), HERE, "CAPTURING"),
-    ("no process",                    dict(), {}, "STOPPED"),
+    # a log nobody has written for minutes, and no process: really stopped
+    ("no process, stale log",         dict(last_age=600), {}, "STOPPED"),
+    # a log written seconds ago with no visible process and no pid file is
+    # a task-started capture hiding its command line - unproven, not stopped
+    ("no process, fresh log",         dict(), {}, "CAPTURING?"),
     ("stale, alive",                  dict(last_age=600), HERE, "STALE"),
     ("foreign board id in beacon",    dict(beacon=9), HERE, "DEGRADED"),
     ("no beacon at all",              dict(beacon=None), HERE, "DEGRADED"),

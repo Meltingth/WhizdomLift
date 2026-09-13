@@ -66,6 +66,13 @@ def probe(port, secs=PROBE_S):
     end = time.time() + secs
     while time.time() < end:
         raw += ser.read(512)
+        # Stop as soon as the board has named itself. Waiting out the full
+        # window is only needed to call a port *unidentified*; an identified
+        # one is settled the moment its beacon lands. Only complete lines
+        # count, so a beacon cut off mid-number is never read as an answer.
+        done = raw[:raw.rfind(b"\n") + 1].decode("utf-8", "replace")
+        if any(m and m.group(3) for m in (FW.search(l) for l in done.splitlines())):
+            break
     ser.close()
 
     lines = [l.strip() for l in raw.decode("utf-8", "replace").splitlines()
@@ -94,6 +101,23 @@ def probe(port, secs=PROBE_S):
                     f"pair" if raw else "not one byte arrived"}
 
 
+def scan(ports, probe_fn=None):
+    """Probe every port at once and return the results in the order given.
+
+    One after another, each unclaimed port costs up to PROBE_S, so a reboot
+    with four free ports spent 2 min 43 s here before a single capture could
+    start (measured 13 Sep 2026: logon 09:24:07, task 09:24:24, scan done
+    09:27:09). The ports are independent devices and every probe only
+    listens, so probing them together costs one beacon interval in total.
+    """
+    probe_fn = probe_fn or probe
+    if not ports:
+        return []
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=len(ports)) as pool:
+        return list(pool.map(probe_fn, ports))
+
+
 def main():
     ports = [p.device for p in list_ports.comports()
              if "CH340" in (p.description or "") or "USB" in (p.description or "")]
@@ -101,10 +125,10 @@ def main():
         sys.exit("no USB serial adapters found")
 
     if "--json" not in sys.argv:
-        print(f"probing {len(ports)} port(s) - {PROBE_S:.0f}s each on the "
+        print(f"probing {len(ports)} port(s) in parallel - up to {PROBE_S:.0f}s on the "
               f"unclaimed ones, transmitting nothing\n")
 
-    results = [probe(p) for p in ports]
+    results = scan(ports)
 
     if "--json" in sys.argv:
         print(json.dumps(results, indent=2))
