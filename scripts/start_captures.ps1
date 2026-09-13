@@ -183,9 +183,20 @@ try {
     # that looks exactly as fresh as a live one, so the guard protected three
     # dead captures and the watchdog left them dead. A pid either exists or it
     # does not.
+    $bootTime = (Get-CimInstance Win32_OperatingSystem).LastBootUpTime
     function Test-PidAlive([string] $lift) {
         $f = Join-Path $root ("capture_lift_{0}.pid" -f $lift)
         if (-not (Test-Path -LiteralPath $f)) { return $false }
+        # A pid file written before the last boot names a pid from a machine
+        # that no longer exists. Windows reuses pid numbers freely, so an
+        # unrelated python.exe can land on it and the watchdog would then skip
+        # that lift forever - silently, which is this project's whole failure
+        # mode. Anything older than the boot is deleted rather than trusted.
+        if ((Get-Item -LiteralPath $f).LastWriteTime -lt $script:bootTime) {
+            Say ("lift $lift has a pid file from before the last boot - discarding it")
+            Remove-Item -LiteralPath $f -ErrorAction SilentlyContinue
+            return $false
+        }
         $id = (Get-Content -LiteralPath $f -Raw).Trim()
         if ($id -notmatch '^\d+$') { return $false }
         $proc = Get-CimInstance Win32_Process -Filter "ProcessId=$id" -ErrorAction SilentlyContinue

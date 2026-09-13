@@ -22,6 +22,7 @@ from __future__ import annotations
 import os
 import re
 import subprocess
+import time
 import sys
 from datetime import datetime
 
@@ -181,6 +182,15 @@ def pid_alive(lift):
     except OSError:
         return None
     if not pid.isdigit():
+        return None
+    # Windows reuses pid numbers, so a pid file left behind by a reboot can
+    # name an unrelated python.exe. time.monotonic() counts from boot on
+    # Windows, so this is the boot instant without asking WMI for it.
+    boot = time.time() - time.monotonic()
+    try:
+        if os.path.getmtime(path) < boot:
+            return None
+    except OSError:
         return None
     ps = ("(Get-CimInstance Win32_Process -Filter 'ProcessId=%s' "
           "-ErrorAction SilentlyContinue).Name" % pid)
