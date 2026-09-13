@@ -1,11 +1,13 @@
 openapi: 3.1.0
 info:
   title: LMS-NG API
-  version: 2.0.0-draft.2
+  version: 2.0.0-draft.3
   description: >
-    REST + WebSocket API for the Lift Monitoring System, candidate 2.0.0-draft.2. Base path
-    is /api/v2 (owner decision, superseding draft.1's "/api/v1 kept unchanged" choice): a
-    legacy v1 OpenAPI baseline already exists, this candidate changes multiple field
+    REST + WebSocket API for the Lift Monitoring System. The candidate identifier is
+    info.version above (checked against contracts/VERSION by
+    tests/contract/version_consistency.py). Base path is /api/v2 (owner decision D-07,
+    reversing an earlier candidate's "/api/v1 kept unchanged" choice -- history in
+    contracts/CHANGELOG.md): a legacy v1 OpenAPI baseline already exists, this candidate changes multiple field
     semantics that are breaking regardless of base path (see CONTRACT_BASELINE_DIFF.md), and
     PRE-0/A-DRAFT's search for a deployed v1 consumer was scoped to the inspected
     repositories, this machine's local filesystem, and the supplied revision-pack artifacts

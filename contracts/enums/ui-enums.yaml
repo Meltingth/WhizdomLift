@@ -1,14 +1,16 @@
-version: 2.0.0-draft.1
+version: 2.0.0-draft.3
 status: DRAFT
 approvedBy: null
 approvedAt: null
 note: >
   Thai strings marked (owner) are fixed decisions carried forward unchanged from the
   Backend Plan v1.3 / prior sessions -- not proposed here, not open for silent rewording.
-  Everything else is a proposal for G-A review. See docs/preflight/CONTRACT_BASELINE_DIFF.md
-  section (enums) for what changed vs the (nonexistent) v1 UI-enum baseline -- there was none
-  to diff against, this is drafted directly from Backend Plan sections 5/6/13 and revised
-  plan section A.11.
+  Everything else is a proposal for G-A review. No v1 UI-enum baseline file was found within
+  the inspected repositories, this machine's local filesystem, and the supplied revision-pack
+  artifacts (the Dell/server environment was not inspected), so this list is drafted directly
+  from Backend Plan sections 5/6/13 and revised plan section A.11 rather than diffed -- see
+  docs/preflight/CONTRACT_BASELINE_DIFF.md. The version field above is checked against
+  contracts/VERSION by tests/contract/version_consistency.py.
 
 connectionState:
   ONLINE:              { label: ออนไลน์,        tone: ok }

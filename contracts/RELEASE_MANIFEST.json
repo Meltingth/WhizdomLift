@@ -1,19 +1,31 @@
 {
   "docType": "CONTRACT_RELEASE_MANIFEST",
-  "version": "2.0.0-draft.2",
+  "version": "2.0.0-draft.3",
   "status": "DRAFT",
   "approvedBy": null,
   "approvedAt": null,
   "supersedes": {
-    "description": "v1 baseline found inside the revision pack, read-only reference, AND candidate 2.0.0-draft.1 (superseded by this candidate -- draft.1's REST base path decision, /api/v1 kept, is reversed here to /api/v2 per owner decision; draft.1's hash sha256:c80b2a1889d0ce8ce56f0f5e8c87634fbe43a37be340d42633c8d854ea5ae225 is retired, not reused, and MUST NOT be cited as this candidate's hash)",
+    "description": "The v1 baseline shipped read-only inside the revision pack. lms-ng keeps a byte-exact copy for C01 at docs/reference/legacy-contracts/, pinned to the pack's own PACK_MANIFEST.sha256 values in tests/contract/baseline.lock.json.",
     "files": [
-      "reference/legacy-contracts/LMS_NG_MQTT_Topic_Specification_v1.yaml",
-      "reference/legacy-contracts/LMS_NG_OpenAPI_v1.yaml"
+      { "packPath": "reference/legacy-contracts/LMS_NG_MQTT_Topic_Specification_v1.yaml", "sha256": "ab13b6efa9f2a6f0924b6344e9ec0999d398a1371cf6d7790c2fc76786b55df7" },
+      { "packPath": "reference/legacy-contracts/LMS_NG_OpenAPI_v1.yaml", "sha256": "99cee322a1ad5b6bda2333ba4bdf1a7c8206d34b9454b311126cb10cda22a687" }
     ]
   },
-  "note": "This file's approvedBy/approvedAt fields are set to null by design and must stay null until an owner approval is recorded through the process in docs/decisions/G-A_DECISION_PACKET.md. No script in this repository writes non-null values here -- see contracts/README.md 'Change guard' and scripts/validate-contracts.ps1, which specifically checks that this file has NOT been silently flipped to APPROVED.",
+  "supersededCandidates": [
+    {
+      "version": "2.0.0-draft.1",
+      "treeHash": "sha256:c80b2a1889d0ce8ce56f0f5e8c87634fbe43a37be340d42633c8d854ea5ae225",
+      "retiredBecause": "Owner reversed decision D-07 (REST base path /api/v1 kept -> /api/v2) during G-A review round 2."
+    },
+    {
+      "version": "2.0.0-draft.2",
+      "treeHash": "sha256:ed2414fb8e830a9c281499c9a5cff8ba441668acb5b98fbb2265a6da5e4d18b3",
+      "retiredBecause": "Independent audit of Milestone 01 found the frozen bundle internally inconsistent (enums/ui-enums.yaml still identified draft.1 while VERSION and this manifest identified draft.2). The draft.3 correction round also found streamSeq's schema pattern accepted values above the int64 range its own description promises. Retired for approval purposes; never edited in place, never reused."
+    }
+  ],
+  "note": "approvedBy/approvedAt are null by design and must stay null until an owner approval is recorded through docs/decisions/G-A_DECISION_PACKET.md. No script in this repository writes non-null values here -- C06 in tests/contract/test_schemas.py fails if this file is flipped to APPROVED, and fails if any version-bearing field in the bundle disagrees with contracts/VERSION (tests/contract/version_consistency.py). Entries in supersededCandidates are the only place a previous candidate's identifier may appear in the bundle outside CHANGELOG.md.",
   "bundle": {
-    "note": "The tree hash is computed by scripts/contracts-hash.ps1, which excludes this file (a manifest cannot hash itself without a chicken-and-egg pass) and vendoring-only SOURCE.md files. See docs/evidence/A-DRAFT_report.md for the actual reproducible value produced by running that script in this round -- not hand-typed here, to keep this file honest about what it does and does not attest to on its own.",
+    "note": "The tree hash is computed by scripts/contracts-hash.ps1, which excludes this file (a manifest cannot hash itself) and vendoring-only SOURCE.md files. The value for this candidate is recorded in docs/decisions/G-A_DECISION_PACKET.md and WORKFLOW_STATE.json after running that script -- not hand-typed here.",
     "hashAlgorithm": "sha256",
     "hashMethod": "sorted relative paths under contracts/, LF-normalised bytes -- see scripts/contracts-hash.ps1 for the exact, executable definition"
   }

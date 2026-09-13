@@ -118,5 +118,53 @@ if os.path.isfile(manifest_path):
 else:
     check("contracts/RELEASE_MANIFEST.json exists", False)
 
+# 6. every version-bearing field in the vendored bundle agrees with contracts/VERSION.
+#    Added for candidate 2.0.0-draft.3: an independent audit found a frozen candidate whose
+#    enums/ui-enums.yaml named an older candidate than VERSION/RELEASE_MANIFEST did, and no
+#    check on either side of the repo boundary noticed. lms-ng's own
+#    tests/contract/version_consistency.py is the full check; this is the Edge side's stdlib-only
+#    subset (the system Python the Edge runs under has no PyYAML), so a copy that drifted here --
+#    or was vendored from an inconsistent source -- fails here too, without importing from lms-ng.
+if os.path.isfile(version_file_path):
+    version = open(version_file_path, encoding="utf-8").read().strip()
+
+    def first_match(relpath, pattern):
+        full = os.path.join(CONTRACTS, relpath)
+        if not os.path.isfile(full):
+            return None
+        m = re.search(pattern, open(full, encoding="utf-8").read(), re.MULTILINE)
+        return m.group(1).strip().strip("'\"") if m else None
+
+    if os.path.isfile(manifest_path):
+        check("vendored RELEASE_MANIFEST.json version == VERSION",
+              manifest.get("version") == version, f"{manifest.get('version')!r} vs {version!r}")
+    enums_version = first_match(os.path.join("enums", "ui-enums.yaml"), r"^version:\s*(\S+)")
+    check("vendored enums/ui-enums.yaml version == VERSION",
+          enums_version == version, f"{enums_version!r} vs {version!r}")
+    openapi_version = first_match(os.path.join("openapi", "LMS_NG_OpenAPI.yaml"),
+                                  r"^info:\s*$(?:\n[ \t]+.*$)*?\n[ \t]+version:\s*(\S+)")
+    check("vendored OpenAPI info.version == VERSION",
+          openapi_version == version, f"{openapi_version!r} vs {version!r}")
+    changelog_heading = first_match("CHANGELOG.md", r"^## (\S+)")
+    check("vendored CHANGELOG.md newest entry == VERSION",
+          changelog_heading == version, f"{changelog_heading!r} vs {version!r}")
+
+    stray = []
+    for dirpath, _dirnames, filenames in os.walk(CONTRACTS):
+        for name in filenames:
+            if name in ("CHANGELOG.md", "SOURCE.md"):
+                continue
+            full = os.path.join(dirpath, name)
+            text = open(full, encoding="utf-8", errors="replace").read()
+            if name == "RELEASE_MANIFEST.json":
+                scrubbed = json.loads(text)
+                scrubbed.pop("supersededCandidates", None)
+                text = json.dumps(scrubbed)
+            for label in re.findall(r"\b\d+\.\d+\.\d+-draft\.\d+\b", text):
+                if label != version:
+                    stray.append("%s: %s" % (os.path.relpath(full, CONTRACTS), label))
+    check("no stray older candidate label anywhere in the vendored bundle",
+          not stray, "; ".join(stray[:5]) or "none")
+
 print("\n%d failure(s)" % fails)
 sys.exit(1 if fails else 0)

@@ -117,6 +117,30 @@ if ($Update) {
     $sourceVersion = (Get-Content -LiteralPath $sourceVersionFile -Raw).Trim()
     $sourceHash = Get-ContractsTreeHash $sourceContracts
 
+    # Provenance guard, checked BEFORE the existing vendored copy is removed so a refused sync
+    # leaves it intact. SOURCE.md records lms-ng's HEAD commit as the source; if contracts/ has
+    # uncommitted changes, that commit does not contain the bytes being copied and the pin
+    # would silently lie about where they came from. This happened once (a draft.3 re-vendor
+    # was run before draft.3 was committed in lms-ng) before this guard existed.
+    Push-Location $lmsNgResolved
+    try {
+        $previousEap = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        $dirty = @(git status --porcelain -- contracts 2>$null)
+        $statusExit = $LASTEXITCODE
+        $ErrorActionPreference = $previousEap
+    } finally {
+        Pop-Location
+    }
+    if ($statusExit -ne 0) {
+        throw "could not run 'git status' in $lmsNgResolved -- refusing to vendor without being able to verify provenance"
+    }
+    if ($dirty.Count -gt 0) {
+        throw ("refusing to vendor: $lmsNgResolved has uncommitted changes under contracts/, so " +
+               "SOURCE.md would pin a commit that does not contain these bytes. Commit them in " +
+               "lms-ng first, then re-run -Update.`n" + ($dirty -join "`n"))
+    }
+
     if (Test-Path $vendoredContracts) {
         Remove-Item -LiteralPath $vendoredContracts -Recurse -Force
     }

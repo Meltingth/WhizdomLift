@@ -1,6 +1,52 @@
 # Contracts changelog
 
-## 2.0.0-draft.2 — 2026-09-13 — DRAFT, not approved
+## 2.0.0-draft.3 — 2026-09-14 — DRAFT, not approved
+
+A-DRAFT correction candidate. `2.0.0-draft.2` is **retired for approval purposes** — never
+edited in place, hash never reused — after an independent audit of Milestone 01 found defects
+in the frozen bundle and its tooling. No contract *decision* (D-01..D-13) changes; every byte
+change below either makes the bundle agree with itself or makes a schema enforce what its own
+accepted decision already says.
+
+**Contract byte changes**
+
+1. **Version metadata made consistent (audit finding).** `enums/ui-enums.yaml` still said
+   `2.0.0-draft.1` while `VERSION` and `RELEASE_MANIFEST.json` said `draft.2`; `README.md`'s
+   title also said `draft.1`. All now agree with `VERSION`; `README.md` no longer repeats the
+   version at all, and `openapi/LMS_NG_OpenAPI.yaml`'s description no longer names a previous
+   candidate in prose. `RELEASE_MANIFEST.json` moves retired candidates into a structured
+   `supersededCandidates` list (the only place outside this changelog allowed to name them).
+2. **`streamSeq` range now enforced by the schema (found during this correction round, not by
+   the audit).** `json-schema/common/ids.schema.json#/$defs/streamSeq` used
+   `^[1-9][0-9]{0,19}$`, which accepts up to 20 digits — e.g. `99999999999999999999` — far
+   past the 1..9223372036854775807 range its own description, and accepted decision D-02,
+   promise. C04 never caught it because its range half was arithmetic that never touched the
+   schema. Replaced with an exact int64-bounded pattern, generated digit-by-digit and verified
+   against exact integer comparison over 181,054 cases in both Python (`re.search`, as
+   `jsonschema` applies patterns) and JavaScript (`RegExp` with the `u` flag, as Ajv compiles
+   them): 0 mismatches in each. Its end anchor is `(?![\s\S])` instead of `$`, because Python's
+   `$` also matches before a trailing newline — `"9223372036854775807\n"` passed in Python and
+   failed in Ajv.
+3. **Two boundary fixtures added:** `fixtures/valid/state_streamSeq_int64_max.json`
+   (`"9223372036854775807"`) and `fixtures/invalid/state_streamSeq_int64_overflow.json`
+   (`"9223372036854775808"`), validated in both languages by C02 and C04.
+4. **`enums/ui-enums.yaml` note** rewritten with scoped evidence wording (it claimed the v1
+   UI-enum baseline was "nonexistent"; now: not found within the inspected scope, Dell/server
+   environment not inspected) — the correction the owner required in round 2, which could not be
+   applied while `draft.2` was frozen.
+
+**Tooling changes (outside the hashed tree, recorded here because they gate this candidate)**
+
+- C01 rewritten: it recorded FAIL for a missing baseline and returned without asserting, so
+  pytest showed it green, and it hard-coded a temporary worktree path. It now resolves the
+  baseline from `tests/contract/baseline.lock.json`, verifies SHA-256 against the revision pack's
+  pinned values, and raises on BLOCKED and FAIL alike.
+- C04 rewritten to validate boundary values through the real schema (see 2).
+- C06 now runs `tests/contract/version_consistency.py` across every version-bearing field.
+- `test_schemas.py` standalone exit code: BLOCKED now exits 2 (it exited 0).
+- Ajv `8.17.1` → `8.20.0` (GHSA-2g4f-4pwh-qvx6); `npm audit` reports 0 vulnerabilities.
+
+## 2.0.0-draft.2 — 2026-09-13 — DRAFT, not approved (retired — see draft.3 above)
 
 Single change from `2.0.0-draft.1`, made by explicit owner decision during G-A review (not a
 new round of independent drafting): **REST base path changed from `/api/v1` to `/api/v2`** in

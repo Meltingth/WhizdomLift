@@ -1,4 +1,10 @@
-# LMS-NG contracts — candidate 2.0.0-draft.1
+# LMS-NG contracts
+
+**Current candidate: see `VERSION`.** This title deliberately does not repeat the version — it
+used to, and kept naming an older candidate after the bundle moved on, which an independent
+audit caught (history in `CHANGELOG.md`). `tests/contract/version_consistency.py` (run by C06 and by
+`scripts/validate-contracts.ps1`) now fails if any version-bearing field anywhere in this bundle
+disagrees with `VERSION`.
 
 **Status: DRAFT. Nothing here is approved.** `approvedBy`/`approvedAt` in
 `RELEASE_MANIFEST.json` are `null` and stay `null` until the owner says otherwise in chat, in
